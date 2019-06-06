@@ -1,0 +1,25 @@
+{
+  "name": "kori-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.tsx",
+  "dependencies": {
+    "@material-ui/core": "^4.0.2",
+    "@material-ui/icons": "^4.0.1",
+    "kotlin": "^1.3.31",
+    "mobx": "^5.10.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.7",
+    "typescript": "^3.5.1"
+  },
+  "scripts": {
+    "copy": "cp ../build/classes/kotlin/js/main/kori.js src/libs && cp ../build/classes/kotlin/js/main/kori.js.map src/libs",
+    "dist": "npm run copy && parcel build src/index.tsx -d ../docs/dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "wener",
+  "license": "MIT"
+}
