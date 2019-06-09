@@ -2,8 +2,6 @@
   'use strict';
   var $$importsForInline$$ = _.$$importsForInline$$ || (_.$$importsForInline$$ = {});
   var Kind_OBJECT = Kotlin.Kind.OBJECT;
-  var StringBuilder_init = Kotlin.kotlin.text.StringBuilder_init;
-  var toChar = Kotlin.toChar;
   var L1 = Kotlin.Long.ONE;
   var L2 = Kotlin.Long.fromInt(2);
   var Pair = Kotlin.kotlin.Pair;
@@ -11,18 +9,26 @@
   var first = Kotlin.kotlin.collections.first_2p1efm$;
   var last = Kotlin.kotlin.collections.last_2p1efm$;
   var Kind_CLASS = Kotlin.Kind.CLASS;
+  var toLongArray = Kotlin.kotlin.collections.toLongArray_558emf$;
   var toSet = Kotlin.kotlin.collections.toSet_se6h4x$;
   var L0 = Kotlin.Long.ZERO;
+  var StringBuilder_init = Kotlin.kotlin.text.StringBuilder_init;
+  var toChar = Kotlin.toChar;
   var sort = Kotlin.kotlin.collections.sort_4wi501$;
   var listOf = Kotlin.kotlin.collections.listOf_mh5how$;
+  var toMutableList = Kotlin.kotlin.collections.toMutableList_4c7yge$;
+  var toList = Kotlin.kotlin.collections.toList_7wnvza$;
+  var removeAll = Kotlin.kotlin.collections.removeAll_qafx1e$;
   var ensureNotNull = Kotlin.ensureNotNull;
   var joinToString = Kotlin.kotlin.collections.joinToString_fmv235$;
+  var emptySet = Kotlin.kotlin.collections.emptySet_287e2$;
   var ArrayList_init = Kotlin.kotlin.collections.ArrayList_init_287e2$;
-  var LinkedHashMap_init = Kotlin.kotlin.collections.LinkedHashMap_init_q3lmfv$;
-  var emptyList = Kotlin.kotlin.collections.emptyList_287e2$;
-  var Unit = Kotlin.kotlin.Unit;
-  var toList = Kotlin.kotlin.collections.toList_7wnvza$;
   var IllegalArgumentException_init = Kotlin.kotlin.IllegalArgumentException_init_pdl1vj$;
+  var ArrayList_init_0 = Kotlin.kotlin.collections.ArrayList_init_ww73n8$;
+  var emptyList = Kotlin.kotlin.collections.emptyList_287e2$;
+  var LinkedHashMap_init = Kotlin.kotlin.collections.LinkedHashMap_init_q3lmfv$;
+  var LinkedHashSet_init = Kotlin.kotlin.collections.LinkedHashSet_init_287e2$;
+  var Unit = Kotlin.kotlin.Unit;
   var toBoxedChar = Kotlin.toBoxedChar;
   var unboxChar = Kotlin.unboxChar;
   var get_lastIndex = Kotlin.kotlin.collections.get_lastIndex_55thoc$;
@@ -34,7 +40,6 @@
   var hashCode = Kotlin.hashCode;
   var Enum = Kotlin.kotlin.Enum;
   var throwISE = Kotlin.throwISE;
-  var LinkedHashSet_init = Kotlin.kotlin.collections.LinkedHashSet_init_287e2$;
   var throwCCE = Kotlin.throwCCE;
   var L6 = Kotlin.Long.fromInt(6);
   var L3 = Kotlin.Long.fromInt(3);
@@ -77,41 +82,11 @@
     }
     return count;
   }
-  function toVariableString($receiver, sb) {
-    if (sb === void 0)
-      sb = StringBuilder_init();
-    for (var idx = 0; idx !== $receiver.length; ++idx) {
-      var i = $receiver[idx];
-      switch (i) {
-        case 0:
-          sb.append_s8itvh$(773);
-          sb.append_s8itvh$(toChar(65 + idx));
-          break;
-        case 1:
-          sb.append_s8itvh$(toChar(65 + idx));
-          break;
-      }
-    }
-    return sb;
+  function toVariableString($receiver) {
+    return QM$Companion_getInstance().toVariableString($receiver);
   }
-  function toBinString($receiver, sb) {
-    if (sb === void 0)
-      sb = StringBuilder_init();
-    var tmp$;
-    for (tmp$ = 0; tmp$ !== $receiver.length; ++tmp$) {
-      var i = $receiver[tmp$];
-      switch (i) {
-        case -2:
-          sb.append_s8itvh$(63);
-          break;
-        case -1:
-          sb.append_s8itvh$(45);
-          break;
-        default:sb.append_s8jyv4$(i);
-          break;
-      }
-    }
-    return sb;
+  function toBinaryRepresentationString($receiver) {
+    return QM$Companion_getInstance().toBinaryRepresentationString($receiver);
   }
   function toBinInts($receiver, n) {
     return Logics_getInstance().toBinInts_6svq3l$(n, $receiver);
@@ -158,7 +133,7 @@
   function MQM$Companion() {
     MQM$Companion_instance = this;
   }
-  MQM$Companion.prototype.estimateMintermlistCompares_za3lpa$ = function (vars) {
+  MQM$Companion.prototype.estimateMintermlistCompares = function (vars) {
     return Kotlin.Long.fromInt(vars).multiply(pow(L2, vars - 1 | 0));
   };
   MQM$Companion.prototype.combine_2vb79e$ = function (a, b) {
@@ -217,28 +192,107 @@
   }
   function QM(vars, ignored, matches) {
     QM$Companion_getInstance();
+    if (vars === void 0)
+      vars = 0;
+    if (ignored === void 0) {
+      ignored = emptySet();
+    }
+    if (matches === void 0) {
+      matches = emptySet();
+    }
     this.vars = vars;
     this.ignored = ignored;
     this.matches = matches;
+    this.terms = ArrayList_init();
     this.essentials = ArrayList_init();
-    this.primes = LinkedHashMap_init();
+    this.primes = ArrayList_init();
     this.compares = 0;
+    this.debug = false;
+    this.iterations = ArrayList_init();
   }
+  QM.prototype.reset = function (vars, matches, ignored) {
+    if (!(vars > 0 && vars <= 31)) {
+      var message = 'invalid vars ' + vars;
+      throw IllegalArgumentException_init(message.toString());
+    }
+    var destination = ArrayList_init_0(matches.length);
+    var tmp$;
+    for (tmp$ = 0; tmp$ !== matches.length; ++tmp$) {
+      var item = matches[tmp$];
+      destination.add_11rb$(Kotlin.Long.fromInt(item));
+    }
+    var tmp$_0 = toLongArray(destination);
+    var destination_0 = ArrayList_init_0(ignored.length);
+    var tmp$_1;
+    for (tmp$_1 = 0; tmp$_1 !== ignored.length; ++tmp$_1) {
+      var item_0 = ignored[tmp$_1];
+      destination_0.add_11rb$(Kotlin.Long.fromInt(item_0));
+    }
+    return this.reset_jp13du$(vars, tmp$_0, toLongArray(destination_0));
+  };
+  QM.prototype.reset_jp13du$ = function (vars, matches, ignored) {
+    if (!(vars > 0 && vars <= 63)) {
+      var message = 'invalid vars ' + vars;
+      throw IllegalArgumentException_init(message.toString());
+    }
+    this.ignored = toSet(ignored);
+    this.matches = toSet(matches);
+    this.vars = vars;
+    return this;
+  };
   function QM$Companion() {
     QM$Companion_instance = this;
   }
-  QM$Companion.prototype.of_vkba86$ = function (vars, matches) {
-    return this.of_2yr2u0$(vars, Kotlin.longArray(0), matches.slice());
-  };
   QM$Companion.prototype.of_2yr2u0$ = function (vars, ignored, matches) {
+    if (ignored === void 0)
+      ignored = Kotlin.longArray(0);
     return new QM(vars, toSet(ignored), toSet(matches));
   };
-  QM$Companion.prototype.estimateMintermlistCompares_za3lpa$ = function (vars) {
+  QM$Companion.prototype.estimateMintermlistCompares = function (vars) {
     var n = L0;
     for (var i = 0; i < vars; i++) {
       n = n.add(Combinatorics_getInstance().C_vux9f0$(vars, i).multiply(Combinatorics_getInstance().C_vux9f0$(vars, i + 1 | 0)));
     }
     return n;
+  };
+  QM$Companion.prototype.toBinaryRepresentationString = function (v) {
+    var tmp$;
+    var sb = StringBuilder_init();
+    for (tmp$ = 0; tmp$ !== v.length; ++tmp$) {
+      var i = v[tmp$];
+      sb.append_gw00v9$(this.toBinaryRepresentation(i));
+    }
+    return sb.toString();
+  };
+  QM$Companion.prototype.toBinaryRepresentation = function (v) {
+    var tmp$;
+    switch (v) {
+      case -2:
+        tmp$ = '?';
+        break;
+      case -1:
+        tmp$ = '-';
+        break;
+      default:tmp$ = v.toString();
+        break;
+    }
+    return tmp$;
+  };
+  QM$Companion.prototype.toVariableString = function (v) {
+    var sb = StringBuilder_init();
+    for (var idx = 0; idx !== v.length; ++idx) {
+      var i = v[idx];
+      switch (i) {
+        case 0:
+          sb.append_s8itvh$(773);
+          sb.append_s8itvh$(toChar(65 + idx));
+          break;
+        case 1:
+          sb.append_s8itvh$(toChar(65 + idx));
+          break;
+      }
+    }
+    return sb.toString();
   };
   QM$Companion.prototype.combine_2vb79e$ = function (a, b) {
     var n = 0;
@@ -255,7 +309,7 @@
     return n === 1 ? bins : null;
   };
   QM$Companion.prototype.combine_8x7vjs$ = function (a, b) {
-    var bins = this.combine_2vb79e$(a.bins, b.bins);
+    var bins = this.combine_2vb79e$(a.bin, b.bin);
     if (bins != null) {
       return QM$QM$Term_init_0(bins, a, b);
     }
@@ -301,24 +355,36 @@
     }
     return QM$Companion_instance;
   }
-  QM.prototype.combine = function () {
+  function QM$resolve$lambda(closure$dedup) {
+    return function (it) {
+      return it.combined || !closure$dedup.add_11rb$(toBinaryRepresentationString(it.bin));
+    };
+  }
+  QM.prototype.resolve = function () {
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
+    this.iterations.clear();
+    this.terms.clear();
+    this.essentials.clear();
+    this.primes.clear();
     var truths = ArrayList_init();
     truths.addAll_brywnq$(this.matches);
     truths.addAll_brywnq$(this.ignored);
     sort(truths);
-    var candidates = ArrayList_init();
     tmp$ = truths.iterator();
     while (tmp$.hasNext()) {
       var match = tmp$.next();
       var term = QM$QM$Term_init(Logics_getInstance().toBinInts_6svq3l$(this.vars, match));
       term.matches.add_11rb$(match);
-      candidates.add_11rb$(term);
+      this.terms.add_11rb$(term);
     }
+    var candidates = toMutableList(this.terms);
     var groups = LinkedHashMap_init();
     var ga;
     var gb;
     do {
+      if (this.debug) {
+        this.iterations.add_11rb$(toList(candidates));
+      }
       groups.clear();
       tmp$_0 = candidates.iterator();
       while (tmp$_0.hasNext()) {
@@ -335,12 +401,7 @@
           tmp$_3 = value;
         }
         tmp$_3.add_11rb$(term_0);
-        var tmp$_4;
-        tmp$_4 = term_0.matches.iterator();
-        while (tmp$_4.hasNext()) {
-          var element = tmp$_4.next();
-          this.primes.put_xwzc9p$(element, term_0);
-        }
+        this.primes.add_11rb$(term_0);
       }
       candidates.clear();
       var itor = groups.values.iterator();
@@ -371,24 +432,41 @@
         }
       }
        while (true);
+      var isNotEmpty$result;
+      isNotEmpty$result = !candidates.isEmpty();
     }
-     while (!candidates.isEmpty());
+     while (isNotEmpty$result);
+    var dedup = LinkedHashSet_init();
+    removeAll(this.primes, QM$resolve$lambda(dedup));
     var targets = ArrayList_init();
+    var tmp$_4;
+    tmp$_4 = this.matches.iterator();
+    while (tmp$_4.hasNext()) {
+      var element = tmp$_4.next();
+      targets.add_11rb$(element);
+    }
+    var matchTerms = LinkedHashMap_init();
     var tmp$_5;
-    tmp$_5 = this.matches.iterator();
+    tmp$_5 = this.primes.iterator();
     while (tmp$_5.hasNext()) {
       var element_0 = tmp$_5.next();
-      targets.add_11rb$(element_0);
+      var term_1 = element_0;
+      var tmp$_6;
+      tmp$_6 = element_0.matches.iterator();
+      while (tmp$_6.hasNext()) {
+        var element_1 = tmp$_6.next();
+        matchTerms.put_xwzc9p$(element_1, term_1);
+      }
     }
     while (!targets.isEmpty()) {
-      var term_1 = this.primes.get_11rb$(targets.removeAt_za3lpa$(0));
-      if (targets.removeAll_brywnq$(ensureNotNull(term_1).matches)) {
-        this.essentials.add_11rb$(term_1);
+      var term_2 = matchTerms.get_11rb$(targets.removeAt_za3lpa$(0));
+      if (targets.removeAll_brywnq$(ensureNotNull(term_2).matches)) {
+        this.essentials.add_11rb$(term_2);
       }
     }
     return this;
   };
-  function QM$Term(bins, ones, a, b, combined, esum, matches) {
+  function QM$Term(bin, ones, a, b, combined, esum, matches) {
     if (a === void 0)
       a = null;
     if (b === void 0)
@@ -400,7 +478,7 @@
     if (matches === void 0) {
       matches = ArrayList_init();
     }
-    this.bins = bins;
+    this.bin = bin;
     this.ones = ones;
     this.a = a;
     this.b = b;
@@ -409,7 +487,7 @@
     this.matches = matches;
   }
   QM$Term.prototype.toString = function () {
-    return 'Term(' + this.ones + '/' + this.matches + '/' + toBinString(this.bins) + '/' + (this.combined ? '\u2713' : 'x') + ')';
+    return 'Term(' + this.ones + '/' + this.matches + '/' + toBinaryRepresentationString(this.bin) + '/' + (this.combined ? '\u2713' : 'x') + ')';
   };
   QM$Term.$metadata$ = {
     kind: Kind_CLASS,
@@ -431,7 +509,7 @@
     return $this;
   }
   function QM$toString$lambda(it) {
-    return toVariableString(it.bins);
+    return toVariableString(it.bin);
   }
   QM.prototype.toString = function () {
     return 'QM(e=' + joinToString(this.essentials, ' + ', void 0, void 0, void 0, void 0, QM$toString$lambda) + ', compares=' + this.compares + ')';
@@ -1256,8 +1334,8 @@
   });
   var package$logic = package$kori.logic || (package$kori.logic = {});
   package$logic.ones_tmsbgo$ = ones;
-  package$logic.toVariableString_da7irm$ = toVariableString;
-  package$logic.toBinString_da7irm$ = toBinString;
+  package$logic.toVariableString_tmsbgo$ = toVariableString;
+  package$logic.toBinaryRepresentationString_tmsbgo$ = toBinaryRepresentationString;
   package$logic.toBinInts_if0zpk$ = toBinInts;
   package$logic.toBinInts_dqglrj$ = toBinInts_0;
   Object.defineProperty(package$logic, 'Logics', {

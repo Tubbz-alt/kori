@@ -8,9 +8,9 @@ import kotlin.test.Test
  */
 class QMTest {
 
-    @Test
-    fun testCombine() {
-        val minimizer = QM.of(4, longArrayOf(9, 14), 4, 8, 10, 11, 12, 15).combine()
-        println(minimizer)
-    }
+  @Test
+  fun testCombine() {
+    val minimizer = QM.of(4, longArrayOf(9, 14), 4, 8, 10, 11, 12, 15).resolve()
+    println(minimizer)
+  }
 }

@@ -8,6 +8,8 @@
     "experimentalDecorators": true,
     "target": "es6",
     "jsx": "react",
+    /* parcel code split works with esnext, but code split is not so good  */
+    "module": "commonjs",
     "typeRoots": [
       "node_modules/@types"
     ],

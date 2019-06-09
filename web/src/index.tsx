@@ -1,6 +1,10 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
-import {CssBaseline, Link, ListItemIcon, ListSubheader, makeStyles} from "@material-ui/core";
+// import {CssBaseline, Link, ListItemIcon, ListSubheader, makeStyles} from "@material-ui/core";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import Link from "@material-ui/core/Link";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListSubheader from "@material-ui/core/ListSubheader";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
@@ -11,12 +15,14 @@ import Divider from "@material-ui/core/Divider";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import Icon from "@material-ui/core/Icon";
 import Container from "@material-ui/core/Container";
 import clsx from 'clsx'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-import LogicPane from "./components/LogicPane";
+import LinkIcon from '@material-ui/icons/Link';
+import Content from "./components/Content";
+import {navigate} from "hookrouter";
+import makeStyles from "@material-ui/core/styles/makeStyles";
 
 const drawerWidth = 240;
 
@@ -99,9 +105,38 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const menus = [
+  {
+    label: 'Home',
+    link: '/',
+    icon: <DashboardIcon/>
+  },
+  {
+    label: 'Boolean Expression',
+    link: '/boolean-expression',
+  },
+  {
+    label: 'Quine–McCluskey algorithm',
+    link: '/qm',
+  },
+  {
+    label: 'Github',
+    link: 'https://github.com/wenerme/kori',
+    icon: <LinkIcon/>
+  },
+];
+
 function App() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
+
+  const goto = (link) => {
+    if (/https?:/.test(link)) {
+      window.open(link)
+    } else {
+      navigate(link)
+    }
+  };
 
   return (
     <div className={classes.root}>
@@ -137,20 +172,17 @@ function App() {
         <Divider/>
         <List>
           <div>
-            <ListItem button>
-              <ListItemIcon>
-                <DashboardIcon/>
-              </ListItemIcon>
-              <ListItemText primary="Home"/>
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon>
-                <Icon>link</Icon>
-              </ListItemIcon>
-              <Link href="https://github.com/wenerme/kori">
-                <ListItemText primary="Github"/>
-              </Link>
-            </ListItem>
+            {
+              menus.map(v => (
+                <ListItem button key={v.label} onClick={() => goto(v.link)}>
+                  {v.icon && (
+                    <ListItemIcon>
+                      {v.icon}
+                    </ListItemIcon>
+                  )}
+                  <ListItemText primary={v.label}/>
+                </ListItem>))
+            }
           </div>
         </List>
 
@@ -175,7 +207,7 @@ function App() {
       <main className={classes.content}>
         <div className={classes.appBarSpacer}/>
         <Container maxWidth="lg" className={classes.container}>
-          <LogicPane/>
+          <Content/>
         </Container>
       </main>
     </div>

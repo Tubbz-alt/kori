@@ -10,28 +10,28 @@ import kotlin.test.assertNotEquals
  * @since 2019-06-06
  */
 class LogicExpressionsTest {
-    @Test
-    fun testEquals() {
-        class TestCase(val a: String, val b: String)
+  @Test
+  fun testEquals() {
+    class TestCase(val a: String, val b: String)
 
-        for (case in arrayOf(
-            TestCase("a ||b", "b||a"),
-            TestCase("a ^b", "b^a"),
-            TestCase("a &&(b || c)", "(b||c) && a")
-        )) {
-            case.apply {
-                assertEquals(LogicExpressions.parse(a), LogicExpressions.parse(b), "Compare $a - $b")
-            }
-        }
-
-        for (case in arrayOf(
-            TestCase("a ||b", "b&&a"),
-            TestCase("a ^b", "c^a"),
-            TestCase("a &&(b || c)", "(b||c) || a")
-        )) {
-            case.apply {
-                assertNotEquals(LogicExpressions.parse(a), LogicExpressions.parse(b), "Compare $a - $b")
-            }
-        }
+    for (case in arrayOf(
+      TestCase("a ||b", "b||a"),
+      TestCase("a ^b", "b^a"),
+      TestCase("a &&(b || c)", "(b||c) && a")
+    )) {
+      case.apply {
+        assertEquals(LogicExpressions.parse(a), LogicExpressions.parse(b), "Compare $a - $b")
+      }
     }
+
+    for (case in arrayOf(
+      TestCase("a ||b", "b&&a"),
+      TestCase("a ^b", "c^a"),
+      TestCase("a &&(b || c)", "(b||c) || a")
+    )) {
+      case.apply {
+        assertNotEquals(LogicExpressions.parse(a), LogicExpressions.parse(b), "Compare $a - $b")
+      }
+    }
+  }
 }
