@@ -137,7 +137,7 @@ export default function QMPane(props) {
     primes: [] as Array<{ matches, bin }>,
     iterations: [],
 
-    selected: null,
+    selected: [],
 
     estimateCompares: 0,
     compares: 0,
@@ -164,19 +164,10 @@ export default function QMPane(props) {
       store.ignores = store.ignores.filter(i => i != v)
     },
     onIterationRowHoverEnter(term) {
-      console.log(`Enter ${term.bin}`)
-      if (store.selected) {
-        store.selected.selected = false
-      }
-      store.selected = term;
-      store.selected.selected = true
+      store.selected = term.dependencies
     },
     onIterationRowHoverLeave(term) {
-      console.log(`Leave ${term.bin}`)
-      if (store.selected) {
-        store.selected.selected = false
-      }
-      store.selected = null;
+      store.selected = []
     },
     doResolve() {
       store.variableCount = parseInt(store.variableCountInput)
@@ -194,16 +185,32 @@ export default function QMPane(props) {
       const terms = qm.terms.toArray();
       store.truthTable = terms.map(v => [v.matches.toArray()[0].toInt(), ...v.bin, 1]);
 
-      const grouping = (terms) => {
+      const grouping = (terms, trace = false) => {
         let group = terms.reduce((a, v) => {
           const ones = v.ones;
           const g = a[ones] || {ones: ones, terms: []};
           a[ones] = g;
-          g.terms.push({matches: v.matches.toArray(), bin: v.bin, combined: v.combined});
+          const term = {
+            key: '',
+            matches: v.matches.toArray(),
+            bin: v.bin,
+            combined: v.combined,
+            dependencies: [],
+            get selected() {
+              return store.selected.includes(term.key);
+            },
+          };
+          if (trace) {
+            term.key = Array.from(v.matches.toArray()).join('|');
+            const visit = v => !v ? [] : [v, ...visit(v.a), ...visit(v.b)];
+            term.dependencies = visit(v)
+              .filter(v => v)
+              .map(v => Array.from(v.matches.toArray()).join('|'));
+          }
+          g.terms.push(term);
           return a
         }, {});
         group = Object.values(group).sort((a: any, b: any) => a.ones - b.ones);
-        group.forEach(v => v.terms.sort((a, b) => a.match - b.match));
         return group
       };
       store.mintermlist = grouping(terms);
@@ -213,7 +220,7 @@ export default function QMPane(props) {
         bin: Array.from(v.bin) // typed to js array
       }));
 
-      store.iterations = qm.iterations.toArray().map(v => grouping(v.toArray()));
+      store.iterations = qm.iterations.toArray().map(v => grouping(v.toArray(), true));
     }
   }));
 
