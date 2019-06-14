@@ -21,6 +21,53 @@ object LogicExpressions {
   }
 
   /**
+   * A simple expression evaluator
+   */
+  @JsName("eval")
+  @JvmStatic
+  fun eval(e: Expression, varEval: (name: String) -> Boolean): Boolean = when (e) {
+    is Condition -> {
+      when (e.operator) {
+        ConditionOperator.AND -> eval(e.left, varEval) && eval(e.right, varEval)
+        ConditionOperator.OR -> eval(e.left, varEval) || eval(e.right, varEval)
+        ConditionOperator.XOR -> eval(e.left, varEval) xor eval(e.right, varEval)
+      }
+    }
+    is Negative -> !eval(e.expression, varEval)
+    is Parentheses -> eval(e.expression, varEval)
+    is Variable -> varEval(e.name)
+    else -> throw IllegalArgumentException("unexpected expression type ${e::class} $e")
+  }
+
+  @JsName("resolve")
+  @JvmStatic
+  fun resolve(e: Expression): Pair<List<String>, List<IntArray>> {
+    val variables = variables(e).sorted()
+    val results = mutableListOf<IntArray>()
+    val n = variables.size
+
+    for (cur in exhaustive(n)) {
+      if (eval(e) {
+          val idx = variables.indexOf(it)
+          cur[idx] == 1
+        }) {
+        results.add(cur.copyOf())
+      }
+    }
+    return Pair(variables, results);
+  }
+
+  fun exhaustive(n: Int): Sequence<IntArray> {
+    val result = IntArray(n)
+    val indexes = IntArray(n)
+    return sequence {
+      for (i in 0..n) {
+        ones(result, indexes, 0, n - 1, 0, i)
+      }
+    }
+  }
+
+  /**
    * Visit all expression node
    */
   @JsName("loop")
@@ -52,6 +99,7 @@ object LogicExpressions {
     return names.toList()
   }
 
+  @JsName("toExpressionString")
   @JvmStatic
   fun toExpressionString(e: Expression): String = when (e) {
     is Condition -> "${toExpressionString(e.left)} ${e.operator.toOperator()} ${toExpressionString(e.right)}"
@@ -61,6 +109,7 @@ object LogicExpressions {
     else -> throw IllegalArgumentException("unexpected to string of $e")
   }
 
+  @JsName("toAlgebraString")
   @JvmStatic
   fun toAlgebraString(e: Expression): String {
     return when (e) {
@@ -71,158 +120,33 @@ object LogicExpressions {
       else -> throw IllegalArgumentException("unexpected to string of $e")
     }
   }
-}
 
-fun Expression.toAlgebraString(): String = LogicExpressions.toAlgebraString(this)
-
-
-/**
- * A super simple boolean expression parser
- *
- * * support and/or/xor/not - C-like syntax or boolean algebra syntax
- * * support parentheses
- * * support `[a-zA-Z][a-zA-Z0-9]*` variable name
- * * subclass to add customized rules
- */
-open class LogicalExpressionParser(val exp: String) {
-  protected var idx = 0
-  protected var c: Char = NULL
-  protected var lastRead = false
-
-  /**
-   * Track current priority - not > and/or/xor
-   *
-   * * parentheses add a scope
-   * * prefix is higher than logical operator
-   */
-  protected var priorities = mutableListOf(0)
-
-  fun parse(): Expression {
-    idx = 0
-    val e = parseExpression()
-    unexpected(NULL, read())
-    return e
-  }
-
-  protected fun parseExpression(): Expression {
-    read()
-    return parseCondition()
-  }
-
-  protected fun parseCondition(): Expression {
-    val left = parseParentheses()
-    val operator = nextOperator()
-    if (operator != null) {
-      val right = parseExpression()
-      return Condition(operator, left, right)
-    }
-    return left
-  }
-
-  protected fun nextOperator(): ConditionOperator? {
-    if (priorities.last() > 0) {
-      return null
-    }
-    read()
-
-    return when (c) {
-      '&' -> {
-        next(c);
-        ConditionOperator.AND
+  fun printSyntaxTree(
+    e: Expression,
+    out: (s: String) -> Unit = { println(it) },
+    indent: Int = 0
+  ) {
+    when (e) {
+      is Condition -> {
+        out("${"  ".repeat(indent)}Condition[operator=${e.operator}]")
+        printSyntaxTree(e.left, out, indent + 1)
+        printSyntaxTree(e.right, out, indent + 1)
       }
-      AlgebraAnd -> ConditionOperator.AND
-
-      '|' -> {
-        next(c);
-        ConditionOperator.OR
+      is Negative -> {
+        out("${"  ".repeat(indent)}Negative")
+        printSyntaxTree(e.expression, out, indent + 1)
       }
-      AlgebraOr -> ConditionOperator.OR
-
-      '^' -> ConditionOperator.XOR
-      else -> {
-        unread()
-        null
+      is Parentheses -> {
+        out("${"  ".repeat(indent)}Parentheses")
+        printSyntaxTree(e.expression, out, indent + 1)
       }
-    }
-  }
-
-  protected fun unread() {
-    if (lastRead) {
-      idx--
-    }
-  }
-
-  protected fun parseParentheses(): Expression {
-    if (c == '(') {
-      priorities.add(0)
-      val e = Parentheses(expression = parseExpression())
-      unexpected(')', read())
-      priorities.removeAt(priorities.lastIndex)
-      return e
-    }
-
-    return parseNegative()
-  }
-
-  protected fun parseNegative(): Expression {
-    if (c == '!' || c == AlgebraNot) {
-      priorities[priorities.lastIndex] = priorities.last() + 1
-      val e = Negative(expression = parseExpression())
-      priorities[priorities.lastIndex] = priorities.last() - 1
-      return e
-    }
-    return parseVariable()
-  }
-
-  protected fun parseVariable(): Expression {
-    if (isVariableLeading(c)) {
-      val s = idx - 1
-      while (isVariablePending(next()));
-      unread()
-      val name = exp.substring(s, idx)
-      return Variable(name)
-    }
-    throw LogicalExpressionSyntaxException("unexpected '${c.toMessageString()}' at $idx")
-  }
-
-  protected fun isVariableLeading(c: Char): Boolean {
-    return (c in 'a'..'z') || (c in 'A'..'Z')
-  }
-
-  protected fun isVariablePending(c: Char): Boolean {
-    return isVariableLeading(c) || (c in '9'..'0')
-  }
-
-  private fun read(): Char {
-    while (next() == ' ');
-    return c
-  }
-
-  protected fun next(): Char {
-    if (idx >= exp.length) {
-      lastRead = false
-      c = NULL
-    } else {
-      lastRead = true
-      c = exp[idx++]
-    }
-    return c
-  }
-
-  protected fun next(expected: Char): Char {
-    val c = next()
-    unexpected(expected, c)
-    return c
-  }
-
-  private fun unexpected(expected: Char, c: Char) {
-    if (expected != c) {
-      throw LogicalExpressionSyntaxException("expected '${expected.toMessageString()}' got '${c.toMessageString()}' at $idx")
+      is Variable -> out("${"  ".repeat(indent)}Variable[name=${e.name}]")
+      else -> throw IllegalArgumentException("unexpected to string of $e")
     }
   }
 }
 
-class LogicalExpressionSyntaxException(message: String) : RuntimeException(message) {}
+fun Expression.toAlgebraString(): String = LogicExpressions.toAlgebraString(this)
 
 interface Expression {
   fun not(): Expression = Negative(this)
@@ -299,5 +223,217 @@ fun ConditionOperator.toAlgebraOperator() = when (this) {
   else -> throw IllegalArgumentException("no algebra operator for $this")
 }
 
+
+suspend fun SequenceScope<IntArray>.ones(
+  result: IntArray,
+  indexes: IntArray,
+  start: Int,
+  end: Int,
+  index: Int,
+  n: Int
+) {
+  if (index == n) {
+    // reset
+    result.fill(0)
+    // one
+    for (i in 0 until n) {
+      result[indexes[i]] = 1
+    }
+    yield(result)
+  } else {
+    var i = start
+    while (i <= end && end - i + 1 >= n - index) {
+      indexes[index] = i
+      ones(result, indexes, i + 1, end, index + 1, n)
+      i++
+    }
+  }
+}
+
+fun IntArray.fill(v: Int) {
+  val n = this.size
+  for (i in 0 until n) {
+    this[i] = v
+  }
+}
+
+fun IntArray.replace(f: Int, t: Int) {
+  val n = this.size
+  for (i in 0 until n) {
+    if (this[i] == f) {
+      this[i] = t
+    }
+  }
+}
+
+
+/**
+ * A super simple boolean expression parser
+ *
+ * * support and/or/xor/not - C-like syntax or boolean algebra syntax
+ * * support parentheses
+ * * support `[a-zA-Z][a-zA-Z0-9]*` variable name
+ * * subclass to add customized rules
+ */
+private class LogicalExpressionParser(val exp: String) {
+  var idx = 0
+  var c: Char = NULL
+  var lastRead = false
+
+  /**
+   * Track current priority - (),!,&&,||
+   *
+   * * parentheses add a scope
+   * * prefix is higher than logical operator
+   */
+  var priorities = mutableListOf(0)
+
+  fun parse(): Expression {
+    idx = 0
+    val e = parseExpression()
+    unexpected(NULL, read())
+    return e
+  }
+
+  fun parseExpression(): Expression {
+    read()
+    return parseOr()
+  }
+
+  fun parseOr(): Expression {
+    val left = parseAnd()
+    return withPriority(0) {
+      when (read()) {
+        '|' -> {
+          next('|')
+          Condition(ConditionOperator.OR, left, parseExpression())
+        }
+        AlgebraOr -> Condition(ConditionOperator.OR, left, parseExpression())
+        else -> {
+          unread()
+          null
+        }
+      }
+    } ?: left
+  }
+
+  fun parseAnd(): Expression {
+    val left = parseXor()
+
+    return withPriority(1) {
+      when (read()) {
+        '&' -> {
+          next('&')
+          Condition(ConditionOperator.AND, left, parseExpression())
+        }
+        AlgebraAnd -> Condition(ConditionOperator.AND, left, parseExpression())
+        else -> {
+          unread()
+          null
+        }
+      }
+    } ?: left
+  }
+
+  fun parseXor(): Expression {
+    val left = parseNegative()
+
+    return withPriority(3) {
+      when (read()) {
+        '^' -> Condition(ConditionOperator.XOR, left, parseExpression())
+        else -> {
+          unread()
+          null
+        }
+      }
+    } ?: left
+  }
+
+  fun unread() {
+    if (lastRead) {
+      idx--
+    }
+  }
+
+  fun <T> withPriority(v: Int, f: () -> T?): T? {
+    if (v < priorities.last()) {
+      return null
+    }
+    priorities.add(v)
+    val t = f()
+    priorities.removeAt(priorities.lastIndex)
+    return t
+  }
+
+  protected fun parseNegative(): Expression {
+    if (c == '!' || c == AlgebraNot) {
+      return withPriority(4) {
+        Negative(expression = parseExpression())
+      }!!
+    }
+    return parseParentheses()
+  }
+
+  protected fun parseParentheses(): Expression {
+    if (c == '(') {
+      priorities.add(0)
+      val e = Parentheses(expression = parseExpression())
+      unexpected(')', read())
+      priorities.removeAt(priorities.lastIndex)
+      return e
+    }
+
+    return parseVariable()
+  }
+
+  protected fun parseVariable(): Expression {
+    if (isVariableLeading(c)) {
+      val s = idx - 1
+      while (isVariablePending(next()));
+      unread()
+      val name = exp.substring(s, idx)
+      return Variable(name)
+    }
+    throw LogicalExpressionSyntaxException("unexpected '${c.toMessageString()}' at $idx")
+  }
+
+  protected fun isVariableLeading(c: Char): Boolean {
+    return (c in 'a'..'z') || (c in 'A'..'Z')
+  }
+
+  protected fun isVariablePending(c: Char): Boolean {
+    return isVariableLeading(c) || (c in '9'..'0')
+  }
+
+  private fun read(): Char {
+    while (next() == ' ');
+    return c
+  }
+
+  protected fun next(): Char {
+    if (idx >= exp.length) {
+      lastRead = false
+      c = NULL
+    } else {
+      lastRead = true
+      c = exp[idx++]
+    }
+    return c
+  }
+
+  protected fun next(expected: Char): Char {
+    val c = next()
+    unexpected(expected, c)
+    return c
+  }
+
+  private fun unexpected(expected: Char, c: Char) {
+    if (expected != c) {
+      throw LogicalExpressionSyntaxException("expected '${expected.toMessageString()}' got '${c.toMessageString()}' at $idx")
+    }
+  }
+}
+
 private fun Char.toMessageString() = if (this == NULL) "EOF" else "$this"
 
+class LogicalExpressionSyntaxException(message: String) : RuntimeException(message)

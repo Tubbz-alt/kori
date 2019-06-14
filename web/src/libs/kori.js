@@ -3,6 +3,7 @@
   var $$importsForInline$$ = _.$$importsForInline$$ || (_.$$importsForInline$$ = {});
   var Kind_OBJECT = Kotlin.Kind.OBJECT;
   var L1 = Kotlin.Long.ONE;
+  var L0 = Kotlin.Long.ZERO;
   var L2 = Kotlin.Long.fromInt(2);
   var Pair = Kotlin.kotlin.Pair;
   var equals = Kotlin.equals;
@@ -11,7 +12,6 @@
   var Kind_CLASS = Kotlin.Kind.CLASS;
   var toLongArray = Kotlin.kotlin.collections.toLongArray_558emf$;
   var toSet = Kotlin.kotlin.collections.toSet_se6h4x$;
-  var L0 = Kotlin.Long.ZERO;
   var StringBuilder_init = Kotlin.kotlin.text.StringBuilder_init;
   var toChar = Kotlin.toChar;
   var sort = Kotlin.kotlin.collections.sort_4wi501$;
@@ -28,7 +28,17 @@
   var emptyList = Kotlin.kotlin.collections.emptyList_287e2$;
   var LinkedHashMap_init = Kotlin.kotlin.collections.LinkedHashMap_init_q3lmfv$;
   var LinkedHashSet_init = Kotlin.kotlin.collections.LinkedHashSet_init_287e2$;
+  var sorted = Kotlin.kotlin.collections.sorted_exjks8$;
   var Unit = Kotlin.kotlin.Unit;
+  var COROUTINE_SUSPENDED = Kotlin.kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED;
+  var CoroutineImpl = Kotlin.kotlin.coroutines.CoroutineImpl;
+  var sequence = Kotlin.kotlin.sequences.sequence_o0x0bg$;
+  var println = Kotlin.kotlin.io.println_s8jyv4$;
+  var repeat = Kotlin.kotlin.text.repeat_94bcnn$;
+  var Kind_INTERFACE = Kotlin.Kind.INTERFACE;
+  var hashCode = Kotlin.hashCode;
+  var Enum = Kotlin.kotlin.Enum;
+  var throwISE = Kotlin.throwISE;
   var toBoxedChar = Kotlin.toBoxedChar;
   var unboxChar = Kotlin.unboxChar;
   var get_lastIndex = Kotlin.kotlin.collections.get_lastIndex_55thoc$;
@@ -36,10 +46,6 @@
   var mutableListOf = Kotlin.kotlin.collections.mutableListOf_i5x0yv$;
   var RuntimeException_init = Kotlin.kotlin.RuntimeException_init_pdl1vj$;
   var RuntimeException = Kotlin.kotlin.RuntimeException;
-  var Kind_INTERFACE = Kotlin.Kind.INTERFACE;
-  var hashCode = Kotlin.hashCode;
-  var Enum = Kotlin.kotlin.Enum;
-  var throwISE = Kotlin.throwISE;
   var throwCCE = Kotlin.throwCCE;
   var L6 = Kotlin.Long.fromInt(6);
   var L3 = Kotlin.Long.fromInt(3);
@@ -47,10 +53,10 @@
   var L_2 = Kotlin.Long.fromInt(-2);
   var AssertionError_init = Kotlin.kotlin.AssertionError_init;
   var defineInlineFunction = Kotlin.defineInlineFunction;
-  LogicalExpressionSyntaxException.prototype = Object.create(RuntimeException.prototype);
-  LogicalExpressionSyntaxException.prototype.constructor = LogicalExpressionSyntaxException;
   ConditionOperator.prototype = Object.create(Enum.prototype);
   ConditionOperator.prototype.constructor = ConditionOperator;
+  LogicalExpressionSyntaxException.prototype = Object.create(RuntimeException.prototype);
+  LogicalExpressionSyntaxException.prototype.constructor = LogicalExpressionSyntaxException;
   function Combinatorics() {
     Combinatorics_instance = this;
   }
@@ -88,11 +94,14 @@
   function toBinaryRepresentationString($receiver) {
     return QM$Companion_getInstance().toBinaryRepresentationString($receiver);
   }
-  function toBinInts($receiver, n) {
-    return Logics_getInstance().toBinInts_6svq3l$(n, $receiver);
+  function toBinaryIntArray($receiver, n) {
+    return Logics_getInstance().toBinaryIntArray(n, $receiver);
   }
-  function toBinInts_0($receiver, n) {
-    return Logics_getInstance().toBinInts_6svq3l$(n, Kotlin.Long.fromInt($receiver));
+  function toBinaryIntArray_0($receiver, n) {
+    return Logics_getInstance().toBinaryIntArray(n, Kotlin.Long.fromInt($receiver));
+  }
+  function fromBinaryIntArrayToLong($receiver) {
+    return Logics_getInstance().fromBinaryIntArrayToLong($receiver);
   }
   function Logics() {
     Logics_instance = this;
@@ -101,7 +110,7 @@
     this.FALSE = 0;
     this.TRUE = 1;
   }
-  Logics.prototype.toBinInts_6svq3l$ = function (n, v) {
+  Logics.prototype.toBinaryIntArray = function (n, v) {
     var ints = new Int32Array(n);
     var c = L1;
     for (var i = n - 1 | 0; i >= 0; i--) {
@@ -114,6 +123,17 @@
       c = c.shiftLeft(1);
     }
     return ints;
+  };
+  Logics.prototype.fromBinaryIntArrayToLong = function (ints) {
+    var s = L0;
+    var c = L1;
+    for (var i = ints.length - 1 | 0; i >= 0; i--) {
+      if (ints[i] === 1) {
+        s = s.add(c);
+      }
+      c = c.shiftLeft(1);
+    }
+    return s;
   };
   Logics.$metadata$ = {
     kind: Kind_OBJECT,
@@ -190,6 +210,7 @@
     }
     return PetrickMethods_instance;
   }
+  var AboveLine;
   function QM(vars, ignored, matches) {
     QM$Companion_getInstance();
     if (vars === void 0)
@@ -284,7 +305,7 @@
       var i = v[idx];
       switch (i) {
         case 0:
-          sb.append_s8itvh$(773);
+          sb.append_s8itvh$(AboveLine);
           sb.append_s8itvh$(toChar(65 + idx));
           break;
         case 1:
@@ -373,7 +394,7 @@
     tmp$ = truths.iterator();
     while (tmp$.hasNext()) {
       var match = tmp$.next();
-      var term = QM$QM$Term_init(Logics_getInstance().toBinInts_6svq3l$(this.vars, match));
+      var term = QM$QM$Term_init(Logics_getInstance().toBinaryIntArray(this.vars, match));
       term.matches.add_11rb$(match);
       this.terms.add_11rb$(term);
     }
@@ -459,7 +480,7 @@
       }
     }
     while (!targets.isEmpty()) {
-      var term_2 = matchTerms.get_11rb$(targets.removeAt_za3lpa$(0));
+      var term_2 = matchTerms.get_11rb$(first(targets));
       if (targets.removeAll_brywnq$(ensureNotNull(term_2).matches)) {
         this.essentials.add_11rb$(term_2);
       }
@@ -529,6 +550,126 @@
   LogicExpressions.prototype.parse = function (exp) {
     return (new LogicalExpressionParser(exp)).parse();
   };
+  LogicExpressions.prototype.eval = function (e, varEval) {
+    if (Kotlin.isType(e, Condition)) {
+      switch (e.operator.name) {
+        case 'AND':
+          return this.eval(e.left, varEval) && this.eval(e.right, varEval);
+        case 'OR':
+          return this.eval(e.left, varEval) || this.eval(e.right, varEval);
+        case 'XOR':
+          return this.eval(e.left, varEval) ^ this.eval(e.right, varEval);
+        default:return Kotlin.noWhenBranchMatched();
+      }
+    }
+     else if (Kotlin.isType(e, Negative))
+      return !this.eval(e.expression, varEval);
+    else if (Kotlin.isType(e, Parentheses))
+      return this.eval(e.expression, varEval);
+    else if (Kotlin.isType(e, Variable))
+      return varEval(e.name);
+    else
+      throw IllegalArgumentException_init('unexpected expression type ' + Kotlin.getKClassFromExpression(e) + ' ' + e);
+  };
+  function LogicExpressions$resolve$lambda(closure$variables, closure$cur) {
+    return function (it) {
+      var idx = closure$variables.indexOf_11rb$(it);
+      return closure$cur[idx] === 1;
+    };
+  }
+  LogicExpressions.prototype.resolve = function (e) {
+    var tmp$;
+    var variables = sorted(this.variables(e));
+    var results = ArrayList_init();
+    var n = variables.size;
+    tmp$ = this.exhaustive_za3lpa$(n).iterator();
+    while (tmp$.hasNext()) {
+      var cur = tmp$.next();
+      if (this.eval(e, LogicExpressions$resolve$lambda(variables, cur))) {
+        results.add_11rb$(cur.slice());
+      }
+    }
+    return new Pair(variables, results);
+  };
+  function Coroutine$LogicExpressions$exhaustive$lambda(closure$n_0, closure$result_0, closure$indexes_0, $receiver_0, controller, continuation_0) {
+    CoroutineImpl.call(this, continuation_0);
+    this.$controller = controller;
+    this.exceptionState_0 = 1;
+    this.local$closure$n = closure$n_0;
+    this.local$closure$result = closure$result_0;
+    this.local$closure$indexes = closure$indexes_0;
+    this.local$tmp$ = void 0;
+    this.local$i = void 0;
+    this.local$$receiver = $receiver_0;
+  }
+  Coroutine$LogicExpressions$exhaustive$lambda.$metadata$ = {
+    kind: Kotlin.Kind.CLASS,
+    simpleName: null,
+    interfaces: [CoroutineImpl]
+  };
+  Coroutine$LogicExpressions$exhaustive$lambda.prototype = Object.create(CoroutineImpl.prototype);
+  Coroutine$LogicExpressions$exhaustive$lambda.prototype.constructor = Coroutine$LogicExpressions$exhaustive$lambda;
+  Coroutine$LogicExpressions$exhaustive$lambda.prototype.doResume = function () {
+    do
+      try {
+        switch (this.state_0) {
+          case 0:
+            this.local$tmp$ = this.local$closure$n;
+            this.local$i = 0;
+            this.state_0 = 2;
+            continue;
+          case 1:
+            throw this.exception_0;
+          case 2:
+            if (this.local$i > this.local$tmp$) {
+              this.state_0 = 5;
+              continue;
+            }
+
+            this.state_0 = 3;
+            this.result_0 = ones_0(this.local$$receiver, this.local$closure$result, this.local$closure$indexes, 0, this.local$closure$n - 1 | 0, 0, this.local$i, this);
+            if (this.result_0 === COROUTINE_SUSPENDED)
+              return COROUTINE_SUSPENDED;
+            continue;
+          case 3:
+            this.state_0 = 4;
+            continue;
+          case 4:
+            this.local$i++;
+            this.state_0 = 2;
+            continue;
+          case 5:
+            return Unit;
+          default:this.state_0 = 1;
+            throw new Error('State Machine Unreachable execution');
+        }
+      }
+       catch (e) {
+        if (this.state_0 === 1) {
+          this.exceptionState_0 = this.state_0;
+          throw e;
+        }
+         else {
+          this.state_0 = this.exceptionState_0;
+          this.exception_0 = e;
+        }
+      }
+     while (true);
+  };
+  function LogicExpressions$exhaustive$lambda(closure$n_0, closure$result_0, closure$indexes_0) {
+    return function ($receiver_0, continuation_0, suspended) {
+      var instance = new Coroutine$LogicExpressions$exhaustive$lambda(closure$n_0, closure$result_0, closure$indexes_0, $receiver_0, this, continuation_0);
+      if (suspended)
+        return instance;
+      else
+        return instance.doResume(null);
+    };
+  }
+  LogicExpressions.prototype.exhaustive_za3lpa$ = function (n) {
+    var result = new Int32Array(n);
+    var indexes = new Int32Array(n);
+    return sequence(LogicExpressions$exhaustive$lambda(n, result, indexes));
+  };
   LogicExpressions.prototype.loop = function (e, visitor) {
     visitor(e);
     if (Kotlin.isType(e, Condition)) {
@@ -553,19 +694,19 @@
     this.loop(e, LogicExpressions$variables$lambda(names));
     return toList(names);
   };
-  LogicExpressions.prototype.toExpressionString_jcuwxh$ = function (e) {
+  LogicExpressions.prototype.toExpressionString = function (e) {
     if (Kotlin.isType(e, Condition))
-      return this.toExpressionString_jcuwxh$(e.left) + ' ' + toOperator(e.operator) + ' ' + this.toExpressionString_jcuwxh$(e.right);
+      return this.toExpressionString(e.left) + ' ' + toOperator(e.operator) + ' ' + this.toExpressionString(e.right);
     else if (Kotlin.isType(e, Negative))
-      return '!' + this.toExpressionString_jcuwxh$(e.expression);
+      return '!' + this.toExpressionString(e.expression);
     else if (Kotlin.isType(e, Parentheses))
-      return '(' + this.toExpressionString_jcuwxh$(e.expression) + ')';
+      return '(' + this.toExpressionString(e.expression) + ')';
     else if (Kotlin.isType(e, Variable))
       return e.name;
     else
       throw IllegalArgumentException_init('unexpected to string of ' + e);
   };
-  LogicExpressions.prototype.toAlgebraString_jcuwxh$ = function (e) {
+  LogicExpressions.prototype.toAlgebraString = function (e) {
     var tmp$;
     if (Kotlin.isType(e, Condition))
       tmp$ = toAlgebraString(e.left) + ' ' + String.fromCharCode(toAlgebraOperator(e.operator)) + ' ' + toAlgebraString(e.right);
@@ -578,6 +719,33 @@
     else
       throw IllegalArgumentException_init('unexpected to string of ' + e);
     return tmp$;
+  };
+  function LogicExpressions$printSyntaxTree$lambda(it) {
+    println(it);
+    return Unit;
+  }
+  LogicExpressions.prototype.printSyntaxTree_ybz7d4$ = function (e, out, indent) {
+    if (out === void 0)
+      out = LogicExpressions$printSyntaxTree$lambda;
+    if (indent === void 0)
+      indent = 0;
+    if (Kotlin.isType(e, Condition)) {
+      out(repeat('  ', indent) + 'Condition[operator=' + e.operator + ']');
+      this.printSyntaxTree_ybz7d4$(e.left, out, indent + 1 | 0);
+      this.printSyntaxTree_ybz7d4$(e.right, out, indent + 1 | 0);
+    }
+     else if (Kotlin.isType(e, Negative)) {
+      out(repeat('  ', indent) + 'Negative');
+      this.printSyntaxTree_ybz7d4$(e.expression, out, indent + 1 | 0);
+    }
+     else if (Kotlin.isType(e, Parentheses)) {
+      out(repeat('  ', indent) + 'Parentheses');
+      this.printSyntaxTree_ybz7d4$(e.expression, out, indent + 1 | 0);
+    }
+     else if (Kotlin.isType(e, Variable))
+      out(repeat('  ', indent) + 'Variable[name=' + e.name + ']');
+    else
+      throw IllegalArgumentException_init('unexpected to string of ' + e);
   };
   LogicExpressions.$metadata$ = {
     kind: Kind_OBJECT,
@@ -592,148 +760,8 @@
     return LogicExpressions_instance;
   }
   function toAlgebraString($receiver) {
-    return LogicExpressions_getInstance().toAlgebraString_jcuwxh$($receiver);
+    return LogicExpressions_getInstance().toAlgebraString($receiver);
   }
-  function LogicalExpressionParser(exp) {
-    this.exp = exp;
-    this.idx = 0;
-    this.c = toBoxedChar(NULL);
-    this.lastRead = false;
-    this.priorities = mutableListOf([0]);
-  }
-  LogicalExpressionParser.prototype.parse = function () {
-    this.idx = 0;
-    var e = this.parseExpression();
-    this.unexpected_kj6u10$_0(NULL, this.read_pwr45j$_0());
-    return e;
-  };
-  LogicalExpressionParser.prototype.parseExpression = function () {
-    this.read_pwr45j$_0();
-    return this.parseCondition();
-  };
-  LogicalExpressionParser.prototype.parseCondition = function () {
-    var left = this.parseParentheses();
-    var operator = this.nextOperator();
-    if (operator != null) {
-      var right = this.parseExpression();
-      return new Condition(operator, left, right);
-    }
-    return left;
-  };
-  LogicalExpressionParser.prototype.nextOperator = function () {
-    var tmp$;
-    if (last(this.priorities) > 0) {
-      return null;
-    }
-    this.read_pwr45j$_0();
-    switch (unboxChar(this.c)) {
-      case 38:
-        this.next_s8itvh$(unboxChar(this.c));
-        tmp$ = ConditionOperator$AND_getInstance();
-        break;
-      case 8743:
-        tmp$ = ConditionOperator$AND_getInstance();
-        break;
-      case 124:
-        this.next_s8itvh$(unboxChar(this.c));
-        tmp$ = ConditionOperator$OR_getInstance();
-        break;
-      case 8744:
-        tmp$ = ConditionOperator$OR_getInstance();
-        break;
-      case 94:
-        tmp$ = ConditionOperator$XOR_getInstance();
-        break;
-      default:this.unread();
-        tmp$ = null;
-        break;
-    }
-    return tmp$;
-  };
-  LogicalExpressionParser.prototype.unread = function () {
-    if (this.lastRead) {
-      this.idx = this.idx - 1 | 0;
-    }
-  };
-  LogicalExpressionParser.prototype.parseParentheses = function () {
-    if (unboxChar(this.c) === 40) {
-      this.priorities.add_11rb$(0);
-      var e = new Parentheses(this.parseExpression());
-      this.unexpected_kj6u10$_0(41, this.read_pwr45j$_0());
-      this.priorities.removeAt_za3lpa$(get_lastIndex(this.priorities));
-      return e;
-    }
-    return this.parseNegative();
-  };
-  LogicalExpressionParser.prototype.parseNegative = function () {
-    if (unboxChar(this.c) === 33 || unboxChar(this.c) === AlgebraNot) {
-      this.priorities.set_wxm5ur$(get_lastIndex(this.priorities), last(this.priorities) + 1 | 0);
-      var e = new Negative(this.parseExpression());
-      this.priorities.set_wxm5ur$(get_lastIndex(this.priorities), last(this.priorities) - 1 | 0);
-      return e;
-    }
-    return this.parseVariable();
-  };
-  LogicalExpressionParser.prototype.parseVariable = function () {
-    if (this.isVariableLeading_s8itvh$(unboxChar(this.c))) {
-      var s = this.idx - 1 | 0;
-      while (this.isVariablePending_s8itvh$(unboxChar(this.next())))
-      ;
-      this.unread();
-      var $receiver = this.exp;
-      var endIndex = this.idx;
-      var name = $receiver.substring(s, endIndex);
-      return new Variable(name);
-    }
-    throw new LogicalExpressionSyntaxException("unexpected '" + toMessageString(unboxChar(this.c)) + "' at " + this.idx);
-  };
-  LogicalExpressionParser.prototype.isVariableLeading_s8itvh$ = function (c) {
-    return (new CharRange(97, 122)).contains_mef7kx$(c) || (new CharRange(65, 90)).contains_mef7kx$(c);
-  };
-  LogicalExpressionParser.prototype.isVariablePending_s8itvh$ = function (c) {
-    return this.isVariableLeading_s8itvh$(c) || (new CharRange(57, 48)).contains_mef7kx$(c);
-  };
-  LogicalExpressionParser.prototype.read_pwr45j$_0 = function () {
-    while (unboxChar(this.next()) === 32)
-    ;
-    return unboxChar(this.c);
-  };
-  LogicalExpressionParser.prototype.next = function () {
-    var tmp$;
-    if (this.idx >= this.exp.length) {
-      this.lastRead = false;
-      this.c = toBoxedChar(NULL);
-    }
-     else {
-      this.lastRead = true;
-      this.c = toBoxedChar(this.exp.charCodeAt((tmp$ = this.idx, this.idx = tmp$ + 1 | 0, tmp$)));
-    }
-    return this.c;
-  };
-  LogicalExpressionParser.prototype.next_s8itvh$ = function (expected) {
-    var c = unboxChar(this.next());
-    this.unexpected_kj6u10$_0(expected, c);
-    return toBoxedChar(c);
-  };
-  LogicalExpressionParser.prototype.unexpected_kj6u10$_0 = function (expected, c) {
-    if (expected !== c) {
-      throw new LogicalExpressionSyntaxException("expected '" + toMessageString(expected) + "' got '" + toMessageString(c) + "' at " + this.idx);
-    }
-  };
-  LogicalExpressionParser.$metadata$ = {
-    kind: Kind_CLASS,
-    simpleName: 'LogicalExpressionParser',
-    interfaces: []
-  };
-  function LogicalExpressionSyntaxException(message) {
-    RuntimeException_init(message, this);
-    this.name = 'LogicalExpressionSyntaxException';
-  }
-  LogicalExpressionSyntaxException.$metadata$ = {
-    kind: Kind_CLASS,
-    simpleName: 'LogicalExpressionSyntaxException',
-    interfaces: [RuntimeException]
-  };
   function Expression() {
   }
   Expression.prototype.not = function () {
@@ -749,7 +777,7 @@
     return new Condition(ConditionOperator$OR_getInstance(), this, right);
   };
   Expression.prototype.toExpressionString = function () {
-    return LogicExpressions_getInstance().toExpressionString_jcuwxh$(this);
+    return LogicExpressions_getInstance().toExpressionString(this);
   };
   Expression.$metadata$ = {
     kind: Kind_INTERFACE,
@@ -964,9 +992,276 @@
       default:throw IllegalArgumentException_init('no algebra operator for ' + $receiver);
     }
   }
+  function Coroutine$ones($receiver_0, result_0, indexes_0, start_0, end_0, index_0, n_0, continuation_0) {
+    CoroutineImpl.call(this, continuation_0);
+    this.exceptionState_0 = 1;
+    this.local$i = void 0;
+    this.local$$receiver = $receiver_0;
+    this.local$result = result_0;
+    this.local$indexes = indexes_0;
+    this.local$start = start_0;
+    this.local$end = end_0;
+    this.local$index = index_0;
+    this.local$n = n_0;
+  }
+  Coroutine$ones.$metadata$ = {
+    kind: Kotlin.Kind.CLASS,
+    simpleName: null,
+    interfaces: [CoroutineImpl]
+  };
+  Coroutine$ones.prototype = Object.create(CoroutineImpl.prototype);
+  Coroutine$ones.prototype.constructor = Coroutine$ones;
+  Coroutine$ones.prototype.doResume = function () {
+    do
+      try {
+        switch (this.state_0) {
+          case 0:
+            if (this.local$index === this.local$n) {
+              fill(this.local$result, 0);
+              for (var i = 0; i < this.local$n; i++) {
+                this.local$result[this.local$indexes[i]] = 1;
+              }
+              this.state_0 = 5;
+              this.result_0 = this.local$$receiver.yield_11rb$(this.local$result, this);
+              if (this.result_0 === COROUTINE_SUSPENDED)
+                return COROUTINE_SUSPENDED;
+              continue;
+            }
+             else {
+              this.local$i = this.local$start;
+              this.state_0 = 2;
+              continue;
+            }
+
+          case 1:
+            throw this.exception_0;
+          case 2:
+            if (this.local$i > this.local$end || (this.local$end - this.local$i + 1 | 0) < (this.local$n - this.local$index | 0)) {
+              this.state_0 = 4;
+              continue;
+            }
+
+            this.local$indexes[this.local$index] = this.local$i;
+            this.state_0 = 3;
+            this.result_0 = ones_0(this.local$$receiver, this.local$result, this.local$indexes, this.local$i + 1 | 0, this.local$end, this.local$index + 1 | 0, this.local$n, this);
+            if (this.result_0 === COROUTINE_SUSPENDED)
+              return COROUTINE_SUSPENDED;
+            continue;
+          case 3:
+            this.local$i = this.local$i + 1 | 0;
+            this.state_0 = 2;
+            continue;
+          case 4:
+            this.state_0 = 6;
+            continue;
+          case 5:
+            this.state_0 = 6;
+            continue;
+          case 6:
+            return;
+          default:this.state_0 = 1;
+            throw new Error('State Machine Unreachable execution');
+        }
+      }
+       catch (e) {
+        if (this.state_0 === 1) {
+          this.exceptionState_0 = this.state_0;
+          throw e;
+        }
+         else {
+          this.state_0 = this.exceptionState_0;
+          this.exception_0 = e;
+        }
+      }
+     while (true);
+  };
+  function ones_0($receiver_0, result_0, indexes_0, start_0, end_0, index_0, n_0, continuation_0, suspended) {
+    var instance = new Coroutine$ones($receiver_0, result_0, indexes_0, start_0, end_0, index_0, n_0, continuation_0);
+    if (suspended)
+      return instance;
+    else
+      return instance.doResume(null);
+  }
+  function fill($receiver, v) {
+    var n = $receiver.length;
+    for (var i = 0; i < n; i++) {
+      $receiver[i] = v;
+    }
+  }
+  function replace($receiver, f, t) {
+    var n = $receiver.length;
+    for (var i = 0; i < n; i++) {
+      if ($receiver[i] === f) {
+        $receiver[i] = t;
+      }
+    }
+  }
+  function LogicalExpressionParser(exp) {
+    this.exp = exp;
+    this.idx = 0;
+    this.c = toBoxedChar(NULL);
+    this.lastRead = false;
+    this.priorities = mutableListOf([0]);
+  }
+  LogicalExpressionParser.prototype.parse = function () {
+    this.idx = 0;
+    var e = this.parseExpression();
+    this.unexpected_0(NULL, this.read_0());
+    return e;
+  };
+  LogicalExpressionParser.prototype.parseExpression = function () {
+    this.read_0();
+    return this.parseOr();
+  };
+  function LogicalExpressionParser$parseOr$lambda(this$LogicalExpressionParser, closure$left) {
+    return function () {
+      switch (this$LogicalExpressionParser.read_0()) {
+        case 124:
+          this$LogicalExpressionParser.next_0(124);
+          return new Condition(ConditionOperator$OR_getInstance(), closure$left, this$LogicalExpressionParser.parseExpression());
+        case 8744:
+          return new Condition(ConditionOperator$OR_getInstance(), closure$left, this$LogicalExpressionParser.parseExpression());
+        default:this$LogicalExpressionParser.unread();
+          return null;
+      }
+    };
+  }
+  LogicalExpressionParser.prototype.parseOr = function () {
+    var tmp$;
+    var left = this.parseAnd();
+    return (tmp$ = this.withPriority_xsjjga$(0, LogicalExpressionParser$parseOr$lambda(this, left))) != null ? tmp$ : left;
+  };
+  function LogicalExpressionParser$parseAnd$lambda(this$LogicalExpressionParser, closure$left) {
+    return function () {
+      switch (this$LogicalExpressionParser.read_0()) {
+        case 38:
+          this$LogicalExpressionParser.next_0(38);
+          return new Condition(ConditionOperator$AND_getInstance(), closure$left, this$LogicalExpressionParser.parseExpression());
+        case 8743:
+          return new Condition(ConditionOperator$AND_getInstance(), closure$left, this$LogicalExpressionParser.parseExpression());
+        default:this$LogicalExpressionParser.unread();
+          return null;
+      }
+    };
+  }
+  LogicalExpressionParser.prototype.parseAnd = function () {
+    var tmp$;
+    var left = this.parseXor();
+    return (tmp$ = this.withPriority_xsjjga$(1, LogicalExpressionParser$parseAnd$lambda(this, left))) != null ? tmp$ : left;
+  };
+  function LogicalExpressionParser$parseXor$lambda(this$LogicalExpressionParser, closure$left) {
+    return function () {
+      if (this$LogicalExpressionParser.read_0() === 94)
+        return new Condition(ConditionOperator$XOR_getInstance(), closure$left, this$LogicalExpressionParser.parseExpression());
+      else {
+        this$LogicalExpressionParser.unread();
+        return null;
+      }
+    };
+  }
+  LogicalExpressionParser.prototype.parseXor = function () {
+    var tmp$;
+    var left = this.parseNegative_0();
+    return (tmp$ = this.withPriority_xsjjga$(3, LogicalExpressionParser$parseXor$lambda(this, left))) != null ? tmp$ : left;
+  };
+  LogicalExpressionParser.prototype.unread = function () {
+    if (this.lastRead) {
+      this.idx = this.idx - 1 | 0;
+    }
+  };
+  LogicalExpressionParser.prototype.withPriority_xsjjga$ = function (v, f) {
+    if (v < last(this.priorities)) {
+      return null;
+    }
+    this.priorities.add_11rb$(v);
+    var t = f();
+    this.priorities.removeAt_za3lpa$(get_lastIndex(this.priorities));
+    return t;
+  };
+  function LogicalExpressionParser$parseNegative$lambda(this$LogicalExpressionParser) {
+    return function () {
+      return new Negative(this$LogicalExpressionParser.parseExpression());
+    };
+  }
+  LogicalExpressionParser.prototype.parseNegative_0 = function () {
+    if (unboxChar(this.c) === 33 || unboxChar(this.c) === AlgebraNot) {
+      return ensureNotNull(this.withPriority_xsjjga$(4, LogicalExpressionParser$parseNegative$lambda(this)));
+    }
+    return this.parseParentheses_0();
+  };
+  LogicalExpressionParser.prototype.parseParentheses_0 = function () {
+    if (unboxChar(this.c) === 40) {
+      this.priorities.add_11rb$(0);
+      var e = new Parentheses(this.parseExpression());
+      this.unexpected_0(41, this.read_0());
+      this.priorities.removeAt_za3lpa$(get_lastIndex(this.priorities));
+      return e;
+    }
+    return this.parseVariable_0();
+  };
+  LogicalExpressionParser.prototype.parseVariable_0 = function () {
+    if (this.isVariableLeading_0(unboxChar(this.c))) {
+      var s = this.idx - 1 | 0;
+      while (this.isVariablePending_0(unboxChar(this.next_1())))
+      ;
+      this.unread();
+      var $receiver = this.exp;
+      var endIndex = this.idx;
+      var name = $receiver.substring(s, endIndex);
+      return new Variable(name);
+    }
+    throw new LogicalExpressionSyntaxException("unexpected '" + toMessageString(unboxChar(this.c)) + "' at " + this.idx);
+  };
+  LogicalExpressionParser.prototype.isVariableLeading_0 = function (c) {
+    return (new CharRange(97, 122)).contains_mef7kx$(c) || (new CharRange(65, 90)).contains_mef7kx$(c);
+  };
+  LogicalExpressionParser.prototype.isVariablePending_0 = function (c) {
+    return this.isVariableLeading_0(c) || (new CharRange(57, 48)).contains_mef7kx$(c);
+  };
+  LogicalExpressionParser.prototype.read_0 = function () {
+    while (unboxChar(this.next_1()) === 32)
+    ;
+    return unboxChar(this.c);
+  };
+  LogicalExpressionParser.prototype.next_1 = function () {
+    var tmp$;
+    if (this.idx >= this.exp.length) {
+      this.lastRead = false;
+      this.c = toBoxedChar(NULL);
+    }
+     else {
+      this.lastRead = true;
+      this.c = toBoxedChar(this.exp.charCodeAt((tmp$ = this.idx, this.idx = tmp$ + 1 | 0, tmp$)));
+    }
+    return this.c;
+  };
+  LogicalExpressionParser.prototype.next_0 = function (expected) {
+    var c = unboxChar(this.next_1());
+    this.unexpected_0(expected, c);
+    return toBoxedChar(c);
+  };
+  LogicalExpressionParser.prototype.unexpected_0 = function (expected, c) {
+    if (expected !== c) {
+      throw new LogicalExpressionSyntaxException("expected '" + toMessageString(expected) + "' got '" + toMessageString(c) + "' at " + this.idx);
+    }
+  };
+  LogicalExpressionParser.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'LogicalExpressionParser',
+    interfaces: []
+  };
   function toMessageString($receiver) {
     return $receiver === NULL ? 'EOF' : String.fromCharCode($receiver);
   }
+  function LogicalExpressionSyntaxException(message) {
+    RuntimeException_init(message, this);
+    this.name = 'LogicalExpressionSyntaxException';
+  }
+  LogicalExpressionSyntaxException.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'LogicalExpressionSyntaxException',
+    interfaces: [RuntimeException]
+  };
   function then$lambda(closure$pre, closure$next) {
     return function (e, parent) {
       var tmp$ = closure$pre(e, parent);
@@ -1336,8 +1631,9 @@
   package$logic.ones_tmsbgo$ = ones;
   package$logic.toVariableString_tmsbgo$ = toVariableString;
   package$logic.toBinaryRepresentationString_tmsbgo$ = toBinaryRepresentationString;
-  package$logic.toBinInts_if0zpk$ = toBinInts;
-  package$logic.toBinInts_dqglrj$ = toBinInts_0;
+  package$logic.toBinaryIntArray_if0zpk$ = toBinaryIntArray;
+  package$logic.toBinaryIntArray_dqglrj$ = toBinaryIntArray_0;
+  package$logic.fromBinaryIntArrayToLong_tmsbgo$ = fromBinaryIntArrayToLong;
   Object.defineProperty(package$logic, 'Logics', {
     get: Logics_getInstance
   });
@@ -1381,8 +1677,6 @@
     get: LogicExpressions_getInstance
   });
   package$exp.toAlgebraString_vtpx22$ = toAlgebraString;
-  package$exp.LogicalExpressionParser = LogicalExpressionParser;
-  package$exp.LogicalExpressionSyntaxException = LogicalExpressionSyntaxException;
   package$exp.Expression = Expression;
   package$exp.Parentheses = Parentheses;
   package$exp.Condition = Condition;
@@ -1400,6 +1694,10 @@
   package$exp.ConditionOperator = ConditionOperator;
   package$exp.toOperator_2ds0r1$ = toOperator;
   package$exp.toAlgebraOperator_2ds0r1$ = toAlgebraOperator;
+  package$exp.ones_nqchij$ = ones_0;
+  package$exp.fill_c03ot6$ = fill;
+  package$exp.replace_6pxxqk$ = replace;
+  package$exp.LogicalExpressionSyntaxException = LogicalExpressionSyntaxException;
   package$exp.then_ftk7yp$ = then;
   Object.defineProperty(package$exp, 'Rewriters', {
     get: Rewriters_getInstance
@@ -1443,6 +1741,7 @@
   Variable.prototype.and = Expression.prototype.and;
   Variable.prototype.or = Expression.prototype.or;
   Variable.prototype.toExpressionString = Expression.prototype.toExpressionString;
+  AboveLine = 773;
   AlgebraAnd = 8743;
   AlgebraOr = 8744;
   AlgebraNot = 172;

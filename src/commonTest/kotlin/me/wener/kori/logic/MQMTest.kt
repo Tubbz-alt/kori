@@ -12,7 +12,7 @@ class MQMTest {
   @Test
   fun testCombine() {
     println(MQM.combine(intArrayOf(0, 0, 0, 0), intArrayOf(0, 1, 0, 0)).toMQMString())
-    println(MQM.combine(5.toBinInts(4), 7.toBinInts(4)).toMQMString())
+    println(MQM.combine(5.toBinaryIntArray(4), 7.toBinaryIntArray(4)).toMQMString())
 
     data class CombineTest(
       var a: Int,
@@ -28,7 +28,7 @@ class MQMTest {
     )
 
     for (t in tests) {
-      val (ints, sum) = MQM.combine(t.a.toBinInts(4), t.b.toBinInts(4))
+      val (ints, sum) = MQM.combine(t.a.toBinaryIntArray(4), t.b.toBinaryIntArray(4))
       assertEquals(t.esum, sum, "${t.a.toString(2, 4)} - ${t.b.toString(2, 4)}")
       assertEquals(t.s, ints.toBinaryRepresentationString().toString(), "${t.a.toString(2, 4)} - ${t.b.toString(2, 4)}")
     }

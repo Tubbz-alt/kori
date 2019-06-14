@@ -5,6 +5,8 @@ import me.wener.kori.util.ifPresent
 import kotlin.js.JsName
 import kotlin.jvm.JvmStatic
 
+private const val AboveLine = '\u0305'
+
 /**
  * [Quine–McCluskey algorithm](https://en.wikipedia.org/wiki/Quine%E2%80%93McCluskey_algorithm)
  */
@@ -81,7 +83,7 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
       for ((idx, i) in v.withIndex()) {
         when (i) {
           Logics.FALSE -> {
-            sb.append('\u0305')
+            sb.append(AboveLine)
             sb.append('A' + idx)
           }
           Logics.TRUE -> sb.append('A' + idx)
@@ -168,7 +170,7 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
 
     // init terms - build truth table
     for (match in truths) {
-      val term = Term(Logics.toBinInts(vars, match))
+      val term = Term(Logics.toBinaryIntArray(vars, match))
       term.matches.add(match)
       terms.add(term)
     }
@@ -234,7 +236,7 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
       it.matches.forEach { matchTerms.put(it, term) }
     }
     while (targets.isNotEmpty()) {
-      val term = matchTerms[targets.removeAt(0)];
+      val term = matchTerms[targets.first()];
       if (targets.removeAll(term!!.matches)) {
         essentials.add(term)
       }

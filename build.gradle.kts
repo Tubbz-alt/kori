@@ -47,8 +47,11 @@ kotlin {
         implementation(kotlin("stdlib-jdk8"))
       }
     }
-    jvm().compilations["test"].defaultSourceSet {
 
+    println("JVM ${jvm().compilations["test"].kotlinSourceSets}")
+    println("JVM ${jvm().compilations["test"].allKotlinSourceSets}")
+
+    jvm().compilations["test"].defaultSourceSet {
       dependencies {
         implementation(kotlin("test-junit"))
       }

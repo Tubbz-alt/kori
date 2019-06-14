@@ -1,6 +1,7 @@
 import * as React from "react";
-import {useEffect} from "react";
+import { useEffect } from "react";
 import {
+  Button,
   Checkbox,
   FormControlLabel,
   FormGroup,
@@ -14,13 +15,15 @@ import {
 } from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import clsx from 'clsx'
-import {useLocalStore, useObserver} from "mobx-react-lite";
+import { useLocalStore, useObserver } from "mobx-react-lite";
+import TruthTable from "../components/TruthTable";
+import { strictEqual } from "assert";
 
 const kori = require('../libs/kori');
 window['kori'] = kori;
 
-const {QM} = kori.me.wener.kori.logic;
-const {LogicExpressions, Rewriters} = kori.me.wener.kori.logic.exp;
+const { QM, Logics } = kori.me.wener.kori.logic;
+const { LogicExpressions, Rewriters } = kori.me.wener.kori.logic.exp;
 
 
 const useStyles = makeStyles(theme => ({
@@ -34,6 +37,11 @@ const useStyles = makeStyles(theme => ({
     height: 240,
   },
 }));
+
+const qm = new QM();
+qm.debug = true;
+window["qm"] = qm;
+const toVariableString = QM.Companion.toVariableString.bind(QM.Companion);
 
 export default function LogicPane(props) {
   const rewrites = [
@@ -68,7 +76,40 @@ export default function LogicPane(props) {
     },
     removeRewrite(v) {
       store.rewrites = store.rewrites.filter(i => i != v)
-    }
+    },
+
+    matches: [],
+    truthTable: [],
+    truthTableVariables: [],
+
+    compares: 0,
+    minimizedExpression: '',
+
+    doResolve() {
+      if (!store.e) {
+        return
+      }
+      const { first: names, second: matches } = LogicExpressions.resolve(store.e)
+      const matcheIntsArray = matches.toArray();
+      store.truthTable = matcheIntsArray.map(v => [Logics.fromBinaryIntArrayToLong(v).toInt(), ...v, 1]);
+      store.truthTableVariables = names.toArray();
+
+      store.matches = matcheIntsArray.map(v => Logics.fromBinaryIntArrayToLong(v).toInt())
+    },
+    doApplyQmMethod() {
+      store.doResolve();
+
+      qm.reset(store.truthTableVariables.length, store.matches, [])
+      try {
+        qm.resolve()
+      } catch (e) {
+        console.log(`Failed to resolve`, e);
+        return
+      }
+      store.compares = qm.compares;
+      store.minimizedExpression = qm.essentials.toArray().map(v => toVariableString(v.bin)).join('+')
+
+    },
   }), props);
 
   useEffect(() => {
@@ -96,7 +137,7 @@ export default function LogicPane(props) {
   });
 
 
-  const classes = useStyles();
+  const classes = useStyles(props);
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   window['testStore'] = store;
@@ -120,18 +161,30 @@ export default function LogicPane(props) {
             onChange={e => store.value = e.target.value}
             margin="normal"
           />
+          <div>
+            <Button color="primary" onClick={store.doResolve}>Resolve</Button>
+            <Button color="primary" onClick={store.doApplyQmMethod}>Apply QM minilizer</Button>
+          </div>
         </Paper>
       </Grid>
       <Grid item xs={12} md={4} lg={3}>
         <Paper className={fixedHeightPaper}>
           <Typography variant="h5" component="h3">
-            Info
+            Results
           </Typography>
 
           <List component="nav">
             <ListItem>
-              <ListItemText primary="Variables" secondary={store.variables.join(',')}/>
+              <ListItemText primary="Variables" secondary={store.variables.join(',')} />
             </ListItem>
+
+            <ListItem>
+              <ListItemText primary="QM Compares" secondary={store.compares} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="Minimized" secondary={store.minimizedExpression} />
+            </ListItem>
+
           </List>
 
         </Paper>
@@ -166,6 +219,14 @@ export default function LogicPane(props) {
           <Typography component="p">
             {store.e && store.e.toExpressionString()}
           </Typography>
+        </Paper>
+      </Grid>
+      <Grid item xs={12}>
+        <Paper className={classes.paper}>
+          <Typography variant="h6" component="h4">
+            Truth Table
+          </Typography>
+          <TruthTable table={store.truthTable} variables={store.truthTableVariables} />
         </Paper>
       </Grid>
     </Grid>

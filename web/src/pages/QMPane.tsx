@@ -6,6 +6,7 @@ import {
   Chip,
   Divider,
   Grid,
+  IconButton,
   List,
   ListItem,
   ListItemText,
@@ -22,6 +23,8 @@ import TextField from "@material-ui/core/TextField";
 import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt';
 import CheckIcon from '@material-ui/icons/Check';
 import DoneAllIcon from '@material-ui/icons/DoneAll';
+import ClearIcon from '@material-ui/icons/Clear';
+import TruthTable from "../components/TruthTable";
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -60,6 +63,7 @@ const toVariableString = QM.Companion.toVariableString.bind(QM.Companion);
 const qm = new QM();
 qm.debug = true;
 window["qm"] = qm;
+
 
 function MintermTable({
                         table,
@@ -246,7 +250,6 @@ export default function QMPane(props) {
 
   window['testStore'] = store;
 
-
   return useObserver(() =>
     <Grid container spacing={3}>
       <Grid item xs={12} md={8} lg={9}>
@@ -300,7 +303,11 @@ export default function QMPane(props) {
             <Divider style={{margin: "8px 0"}}/>
             <div>
               <Typography component="h6">
-                Matches
+                Matches <IconButton
+                size="small"
+                aria-label="Clear"
+                onClick={()=>store.matches = []}
+              ><ClearIcon/></IconButton>
               </Typography>
               <div className={classes.valuesContainer}>
                 {
@@ -321,7 +328,11 @@ export default function QMPane(props) {
 
             <div>
               <Typography component="h6">
-                Ignores
+                Ignores <IconButton
+                size="small"
+                aria-label="Clear"
+                onClick={()=>store.ignores = []}
+              ><ClearIcon/></IconButton>
               </Typography>
               <div className={classes.valuesContainer}>
                 {
@@ -366,36 +377,8 @@ export default function QMPane(props) {
             Truth Table
           </Typography>
           <div>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell/>
-                  {
-                    Array
-                      .from(Array(store.variableCount).keys())
-                      .map(v => (
-                        <TableCell key={v}>{String.fromCharCode('A'.charCodeAt(0) + v)}</TableCell>
-                      ))
-                  }
-                  <TableCell>f</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {
-                  store.truthTable
-                    .map((row, i) => (
-                      <TableRow key={i}>
-                        {
-                          row
-                            .map((v, i) => (
-                              <TableCell key={i}>{`${i === 0 ? 'm' : ''}${v}`}</TableCell>
-                            ))
-                        }
-                      </TableRow>
-                    ))
-                }
-              </TableBody>
-            </Table>
+
+            <TruthTable table={store.truthTable}/>
           </div>
         </Paper>
       </Grid>

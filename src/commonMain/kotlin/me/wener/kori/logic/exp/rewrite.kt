@@ -3,7 +3,6 @@ package me.wener.kori.logic.exp
 import kotlin.js.JsName
 import kotlin.jvm.JvmStatic
 
-
 typealias Rewriter = (e: Expression, parent: Expression?) -> Pair<Expression, Boolean>
 
 fun Rewriter.then(next: Rewriter): Rewriter {
