@@ -1,5 +1,5 @@
-import * as React from "react";
-import { useEffect } from "react";
+import * as React from 'react';
+import {useEffect} from 'react';
 import {
   Button,
   Checkbox,
@@ -12,18 +12,19 @@ import {
   makeStyles,
   Paper,
   TextField
-} from "@material-ui/core";
-import Typography from "@material-ui/core/Typography";
+} from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
 import clsx from 'clsx'
-import { useLocalStore, useObserver } from "mobx-react-lite";
-import TruthTable from "../components/TruthTable";
-import { strictEqual } from "assert";
+import {useLocalStore, useObserver} from 'mobx-react-lite';
+import TruthTable from '../components/TruthTable';
+import {navigate} from 'hookrouter';
+import {Trans, useTranslation} from 'react-i18next';
 
 const kori = require('../libs/kori');
 window['kori'] = kori;
 
-const { QM, Logics } = kori.me.wener.kori.logic;
-const { LogicExpressions, Rewriters } = kori.me.wener.kori.logic.exp;
+const {QM, Logics} = kori.me.wener.kori.logic;
+const {LogicExpressions, Rewriters} = kori.me.wener.kori.logic.exp;
 
 
 const useStyles = makeStyles(theme => ({
@@ -40,9 +41,10 @@ const useStyles = makeStyles(theme => ({
 
 const qm = new QM();
 qm.debug = true;
-window["qm"] = qm;
+window['qm'] = qm;
 const toVariableString = QM.Companion.toVariableString.bind(QM.Companion);
 
+// useStrict(true)
 export default function LogicPane(props) {
   const rewrites = [
     {
@@ -89,9 +91,9 @@ export default function LogicPane(props) {
       if (!store.e) {
         return
       }
-      const { first: names, second: matches } = LogicExpressions.resolve(store.e)
+      const {first: names, second: matches} = LogicExpressions.resolve(store.e)
       const matcheIntsArray = matches.toArray();
-      store.truthTable = matcheIntsArray.map(v => [Logics.fromBinaryIntArrayToLong(v).toInt(), ...v, 1]);
+      store.truthTable = matcheIntsArray.map(v => [Logics.fromBinaryIntArrayToLong(v).toInt(), ...v, 1]).sort((a, b) => a[0] - b[0]);
       store.truthTableVariables = names.toArray();
 
       store.matches = matcheIntsArray.map(v => Logics.fromBinaryIntArrayToLong(v).toInt())
@@ -110,8 +112,13 @@ export default function LogicPane(props) {
       store.minimizedExpression = qm.essentials.toArray().map(v => toVariableString(v.bin)).join('+')
 
     },
+    doJumpQmMethod() {
+      store.doResolve();
+      navigate('/qm', false, {matches: store.matches.join(','), variableCount: store.variables.length});
+    }
   }), props);
 
+  // parse new expression
   useEffect(() => {
     try {
       store.e = LogicExpressions.parse(store.value)
@@ -123,8 +130,9 @@ export default function LogicPane(props) {
     if (!store.error) {
       store.variables = LogicExpressions.variables(store.e).toArray()
     }
-  });
+  }, [store.value]);
 
+  // simplify expression
   useEffect(() => {
     if (!store.e) {
       return
@@ -134,7 +142,7 @@ export default function LogicPane(props) {
       .filter(v => store.rewrites.includes(v.value))
       .map(v => v.attach)
     store.simplified = Rewriters.rewrite(store.e, Rewriters.chain(rw))
-  });
+  }, [store.e]);
 
 
   const classes = useStyles(props);
@@ -145,44 +153,53 @@ export default function LogicPane(props) {
 
   const currentRewrites = store.rewrites;
 
+  const {t} = useTranslation();
+
   return useObserver(() =>
     <Grid container spacing={3}>
       <Grid item xs={12} md={8} lg={9}>
         <Paper className={fixedHeightPaper}>
           <Typography variant="h5" component="h3">
-            Boolean expression
+            <Trans>Boolean expression</Trans>
           </Typography>
           <TextField
             error={!!store.error}
             helperText={store.error}
-            label="Expression"
+            label={t('Expression')}
             value={store.value}
             placeholder="a || b && c"
             onChange={e => store.value = e.target.value}
             margin="normal"
           />
           <div>
-            <Button color="primary" onClick={store.doResolve}>Resolve</Button>
-            <Button color="primary" onClick={store.doApplyQmMethod}>Apply QM minilizer</Button>
+            <Button color="primary" onClick={store.doResolve}>
+              <Trans>Resolve</Trans>
+            </Button>
+            <Button color="primary" onClick={store.doApplyQmMethod}>
+              <Trans>Minimize</Trans>
+            </Button>
+            <Button color="primary" onClick={store.doJumpQmMethod}>
+              <Trans>Jump to QM minimizer</Trans>
+            </Button>
           </div>
         </Paper>
       </Grid>
       <Grid item xs={12} md={4} lg={3}>
         <Paper className={fixedHeightPaper}>
           <Typography variant="h5" component="h3">
-            Results
+            <Trans>Results</Trans>
           </Typography>
 
           <List component="nav">
             <ListItem>
-              <ListItemText primary="Variables" secondary={store.variables.join(',')} />
+              <ListItemText primary={<Trans>Variables</Trans>} secondary={store.variables.join(',')} />
             </ListItem>
 
             <ListItem>
-              <ListItemText primary="QM Compares" secondary={store.compares} />
+              <ListItemText primary={<Trans>Compares</Trans>} secondary={store.compares} />
             </ListItem>
             <ListItem>
-              <ListItemText primary="Minimized" secondary={store.minimizedExpression} />
+              <ListItemText primary={<Trans>Minimized</Trans>} secondary={store.minimizedExpression} />
             </ListItem>
 
           </List>
@@ -192,7 +209,7 @@ export default function LogicPane(props) {
       <Grid item xs={12}>
         <Paper className={classes.paper}>
           <Typography variant="h6" component="h4">
-            Simplified expression
+            <Trans>Simplified expression</Trans>
           </Typography>
           <FormGroup row>
             {
@@ -224,7 +241,7 @@ export default function LogicPane(props) {
       <Grid item xs={12}>
         <Paper className={classes.paper}>
           <Typography variant="h6" component="h4">
-            Truth Table
+            <Trans>Truth Table</Trans>
           </Typography>
           <TruthTable table={store.truthTable} variables={store.truthTableVariables} />
         </Paper>

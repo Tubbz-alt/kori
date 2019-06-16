@@ -7,14 +7,15 @@
   var L2 = Kotlin.Long.fromInt(2);
   var Pair = Kotlin.kotlin.Pair;
   var equals = Kotlin.equals;
-  var first = Kotlin.kotlin.collections.first_2p1efm$;
-  var last = Kotlin.kotlin.collections.last_2p1efm$;
+  var first = Kotlin.kotlin.collections.first_7wnvza$;
+  var last = Kotlin.kotlin.collections.last_7wnvza$;
   var Kind_CLASS = Kotlin.Kind.CLASS;
   var toLongArray = Kotlin.kotlin.collections.toLongArray_558emf$;
   var toSet = Kotlin.kotlin.collections.toSet_se6h4x$;
   var StringBuilder_init = Kotlin.kotlin.text.StringBuilder_init;
   var toChar = Kotlin.toChar;
   var sort = Kotlin.kotlin.collections.sort_4wi501$;
+  var first_0 = Kotlin.kotlin.collections.first_2p1efm$;
   var listOf = Kotlin.kotlin.collections.listOf_mh5how$;
   var toMutableList = Kotlin.kotlin.collections.toMutableList_4c7yge$;
   var toList = Kotlin.kotlin.collections.toList_7wnvza$;
@@ -27,6 +28,9 @@
   var ArrayList_init_0 = Kotlin.kotlin.collections.ArrayList_init_ww73n8$;
   var emptyList = Kotlin.kotlin.collections.emptyList_287e2$;
   var LinkedHashMap_init = Kotlin.kotlin.collections.LinkedHashMap_init_q3lmfv$;
+  var sortWith = Kotlin.kotlin.collections.sortWith_nqfjgj$;
+  var wrapFunction = Kotlin.wrapFunction;
+  var Comparator = Kotlin.kotlin.Comparator;
   var LinkedHashSet_init = Kotlin.kotlin.collections.LinkedHashSet_init_287e2$;
   var sorted = Kotlin.kotlin.collections.sorted_exjks8$;
   var Unit = Kotlin.kotlin.Unit;
@@ -41,6 +45,7 @@
   var throwISE = Kotlin.throwISE;
   var toBoxedChar = Kotlin.toBoxedChar;
   var unboxChar = Kotlin.unboxChar;
+  var last_0 = Kotlin.kotlin.collections.last_2p1efm$;
   var get_lastIndex = Kotlin.kotlin.collections.get_lastIndex_55thoc$;
   var CharRange = Kotlin.kotlin.ranges.CharRange;
   var mutableListOf = Kotlin.kotlin.collections.mutableListOf_i5x0yv$;
@@ -210,6 +215,22 @@
     }
     return PetrickMethods_instance;
   }
+  function Comparator$ObjectLiteral(closure$comparison) {
+    this.closure$comparison = closure$comparison;
+  }
+  Comparator$ObjectLiteral.prototype.compare = function (a, b) {
+    return this.closure$comparison(a, b);
+  };
+  Comparator$ObjectLiteral.$metadata$ = {kind: Kind_CLASS, interfaces: [Comparator]};
+  var compareBy$lambda = wrapFunction(function () {
+    var compareValues = Kotlin.kotlin.comparisons.compareValues_s00gnj$;
+    return function (closure$selector) {
+      return function (a, b) {
+        var selector = closure$selector;
+        return compareValues(selector(a), selector(b));
+      };
+    };
+  });
   var AboveLine;
   function QM(vars, ignored, matches) {
     QM$Companion_getInstance();
@@ -228,6 +249,7 @@
     this.essentials = ArrayList_init();
     this.primes = ArrayList_init();
     this.compares = 0;
+    this.comareThreshhold = pow_0(2, 16);
     this.debug = false;
     this.iterations = ArrayList_init();
   }
@@ -259,6 +281,7 @@
     this.ignored = toSet(ignored);
     this.matches = toSet(matches);
     this.vars = vars;
+    this.compares = 0;
     return this;
   };
   function QM$Companion() {
@@ -350,7 +373,7 @@
     while (tmp$.hasNext()) {
       var value = tmp$.next();
       if (value.size === 1) {
-        essentials.add_11rb$(first(value));
+        essentials.add_11rb$(first_0(value));
       }
     }
     var tmp$_0;
@@ -376,13 +399,21 @@
     }
     return QM$Companion_instance;
   }
-  function QM$resolve$lambda(closure$dedup) {
+  function QM$resolve$lambda(it) {
+    return it.ones;
+  }
+  function QM$resolve$lambda_0(this$QM) {
+    return function () {
+      return 'too many compares ' + this$QM.comareThreshhold;
+    };
+  }
+  function QM$resolve$lambda_1(closure$dedup) {
     return function (it) {
-      return it.combined || !closure$dedup.add_11rb$(toBinaryRepresentationString(it.bin));
+      return it.combined || closure$dedup.put_xwzc9p$(toBinaryRepresentationString(it.bin), it) != null;
     };
   }
   QM.prototype.resolve = function () {
-    var tmp$, tmp$_0, tmp$_1, tmp$_2;
+    var tmp$, tmp$_0, tmp$_1, tmp$_2, tmp$_3;
     this.iterations.clear();
     this.terms.clear();
     this.essentials.clear();
@@ -390,7 +421,6 @@
     var truths = ArrayList_init();
     truths.addAll_brywnq$(this.matches);
     truths.addAll_brywnq$(this.ignored);
-    sort(truths);
     tmp$ = truths.iterator();
     while (tmp$.hasNext()) {
       var match = tmp$.next();
@@ -402,7 +432,11 @@
     var groups = LinkedHashMap_init();
     var ga;
     var gb;
+    var dedup = LinkedHashMap_init();
     do {
+      if (candidates.size > 1) {
+        sortWith(candidates, new Comparator$ObjectLiteral(compareBy$lambda(QM$resolve$lambda)));
+      }
       if (this.debug) {
         this.iterations.add_11rb$(toList(candidates));
       }
@@ -411,17 +445,17 @@
       while (tmp$_0.hasNext()) {
         var term_0 = tmp$_0.next();
         var key = term_0.ones;
-        var tmp$_3;
+        var tmp$_4;
         var value = groups.get_11rb$(key);
         if (value == null) {
           var answer = ArrayList_init();
           groups.put_xwzc9p$(key, answer);
-          tmp$_3 = answer;
+          tmp$_4 = answer;
         }
          else {
-          tmp$_3 = value;
+          tmp$_4 = value;
         }
-        tmp$_3.add_11rb$(term_0);
+        tmp$_4.add_11rb$(term_0);
         this.primes.add_11rb$(term_0);
       }
       candidates.clear();
@@ -435,7 +469,7 @@
          else {
           break;
         }
-        if ((first(gb).ones - first(ga).ones | 0) !== 1) {
+        if ((first_0(gb).ones - first_0(ga).ones | 0) !== 1) {
           continue;
         }
         tmp$_1 = ga.iterator();
@@ -444,10 +478,21 @@
           tmp$_2 = gb.iterator();
           while (tmp$_2.hasNext()) {
             var b = tmp$_2.next();
-            this.compares = this.compares + 1 | 0;
+            if (!((tmp$_3 = this.compares, this.compares = tmp$_3 + 1 | 0, tmp$_3) < this.comareThreshhold)) {
+              var message = QM$resolve$lambda_0(this)();
+              throw IllegalArgumentException_init(message.toString());
+            }
             var $receiver = QM$Companion_getInstance().combine_8x7vjs$(a, b);
             if ($receiver != null) {
-              candidates.add_11rb$($receiver);
+              var s = toBinaryRepresentationString($receiver.bin);
+              var last = dedup.get_11rb$(s);
+              if (last != null) {
+                last.matches.addAll_brywnq$($receiver.matches);
+              }
+               else {
+                candidates.add_11rb$($receiver);
+                dedup.put_xwzc9p$(s, $receiver);
+              }
             }
           }
         }
@@ -457,30 +502,30 @@
       isNotEmpty$result = !candidates.isEmpty();
     }
      while (isNotEmpty$result);
-    var dedup = LinkedHashSet_init();
-    removeAll(this.primes, QM$resolve$lambda(dedup));
+    dedup.clear();
+    removeAll(this.primes, QM$resolve$lambda_1(dedup));
     var targets = ArrayList_init();
-    var tmp$_4;
-    tmp$_4 = this.matches.iterator();
-    while (tmp$_4.hasNext()) {
-      var element = tmp$_4.next();
+    var tmp$_5;
+    tmp$_5 = this.matches.iterator();
+    while (tmp$_5.hasNext()) {
+      var element = tmp$_5.next();
       targets.add_11rb$(element);
     }
     var matchTerms = LinkedHashMap_init();
-    var tmp$_5;
-    tmp$_5 = this.primes.iterator();
-    while (tmp$_5.hasNext()) {
-      var element_0 = tmp$_5.next();
+    var tmp$_6;
+    tmp$_6 = this.primes.iterator();
+    while (tmp$_6.hasNext()) {
+      var element_0 = tmp$_6.next();
       var term_1 = element_0;
-      var tmp$_6;
-      tmp$_6 = element_0.matches.iterator();
-      while (tmp$_6.hasNext()) {
-        var element_1 = tmp$_6.next();
+      var tmp$_7;
+      tmp$_7 = element_0.matches.iterator();
+      while (tmp$_7.hasNext()) {
+        var element_1 = tmp$_7.next();
         matchTerms.put_xwzc9p$(element_1, term_1);
       }
     }
     while (!targets.isEmpty()) {
-      var term_2 = matchTerms.get_11rb$(first(targets));
+      var term_2 = matchTerms.get_11rb$(first_0(targets));
       if (targets.removeAll_brywnq$(ensureNotNull(term_2).matches)) {
         this.essentials.add_11rb$(term_2);
       }
@@ -497,7 +542,7 @@
     if (esum === void 0)
       esum = L0;
     if (matches === void 0) {
-      matches = ArrayList_init();
+      matches = LinkedHashSet_init();
     }
     this.bin = bin;
     this.ones = ones;
@@ -508,7 +553,7 @@
     this.matches = matches;
   }
   QM$Term.prototype.toString = function () {
-    return 'Term(' + this.ones + '/' + this.matches + '/' + toBinaryRepresentationString(this.bin) + '/' + (this.combined ? '\u2713' : 'x') + ')';
+    return 'Term(' + this.ones + '/' + toVariableString(this.bin) + '/' + toBinaryRepresentationString(this.bin) + '}/' + this.matches + '/' + (this.combined ? '\u2713' : 'x') + ')';
   };
   QM$Term.$metadata$ = {
     kind: Kind_CLASS,
@@ -1170,7 +1215,7 @@
     }
   };
   LogicalExpressionParser.prototype.withPriority_xsjjga$ = function (v, f) {
-    if (v < last(this.priorities)) {
+    if (v < last_0(this.priorities)) {
       return null;
     }
     this.priorities.add_11rb$(v);
@@ -1581,6 +1626,12 @@
   var ifPresent = defineInlineFunction('kori.me.wener.kori.util.ifPresent_chljag$', function ($receiver, callback) {
     return $receiver != null ? callback($receiver) : null;
   });
+  var isPresent = defineInlineFunction('kori.me.wener.kori.util.isPresent_8xps0b$', function ($receiver) {
+    return $receiver != null;
+  });
+  var isAbsent = defineInlineFunction('kori.me.wener.kori.util.isAbsent_8xps0b$', function ($receiver) {
+    return $receiver == null;
+  });
   function pollFirst($receiver) {
     return $receiver.removeAt_za3lpa$(0);
   }
@@ -1712,6 +1763,8 @@
   package$math.pow_dqglrj$ = pow_0;
   var package$util = package$kori.util || (package$kori.util = {});
   package$util.ifPresent_chljag$ = ifPresent;
+  package$util.isPresent_8xps0b$ = isPresent;
+  package$util.isAbsent_8xps0b$ = isAbsent;
   package$util.pollFirst_50pv6o$ = pollFirst;
   package$util.pollLast_50pv6o$ = pollLast;
   package$util.addHasCode_eiovh$ = addHasCode;

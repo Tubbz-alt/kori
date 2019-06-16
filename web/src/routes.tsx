@@ -1,21 +1,22 @@
-import * as React from "react";
-import DashboardIcon from "@material-ui/icons/Dashboard";
+import * as React from 'react';
+import DashboardIcon from '@material-ui/icons/Dashboard';
 import LinkIcon from '@material-ui/icons/Link';
 
-import LogicPane from "./pages/LogicPane";
-import QMPane from "./pages/QMPane";
-import Typography from "@material-ui/core/Typography";
+import LogicPane from './pages/LogicPane';
+import QMPane from './pages/QMPane';
+import Typography from '@material-ui/core/Typography';
+import {Trans} from 'react-i18next';
 // const QMPane = lazy(() => import('./QMPane'));
 // const LogicPane = lazy(() => import('./LogicPane'));
 
 export const menus = [
   {
-    label: 'Home',
+    label: <Trans>Home</Trans>,
     link: '/',
-    icon: <DashboardIcon/>
+    icon: <DashboardIcon />
   },
   {
-    label: 'Boolean Expression',
+    label: <Trans>Boolean expression</Trans>,
     link: '/boolean-expression',
     icon: (
       <Typography component="div">
@@ -24,7 +25,7 @@ export const menus = [
     ),
   },
   {
-    label: 'Quine–McCluskey algorithm',
+    label: <Trans>Quine–McCluskey algorithm</Trans>,
     link: '/qm',
     icon: (
       <Typography component="div">
@@ -35,7 +36,7 @@ export const menus = [
   {
     label: 'Github',
     link: 'https://github.com/wenerme/kori',
-    icon: <LinkIcon/>
+    icon: <LinkIcon />
   },
 ];
 
@@ -45,7 +46,7 @@ export const redirects = [
 ];
 
 export const routes = {
-  '/boolean-expression': () => <LogicPane/>,
-  '/qm': () => <QMPane/>,
+  '/boolean-expression': () => <LogicPane />,
+  '/qm': () => <QMPane />,
 };
 

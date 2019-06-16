@@ -1,24 +1,25 @@
 import * as React from 'react';
 // import {CssBaseline, Link, ListItemIcon, ListSubheader, makeStyles} from "@material-ui/core";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import Link from "@material-ui/core/Link";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListSubheader from "@material-ui/core/ListSubheader";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import Typography from "@material-ui/core/Typography";
-import Drawer from "@material-ui/core/Drawer";
-import Divider from "@material-ui/core/Divider";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Container from "@material-ui/core/Container";
+import CssBaseline from '@material-ui/core/CssBaseline';
+import Link from '@material-ui/core/Link';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListSubheader from '@material-ui/core/ListSubheader';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
+import Typography from '@material-ui/core/Typography';
+import Drawer from '@material-ui/core/Drawer';
+import Divider from '@material-ui/core/Divider';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Container from '@material-ui/core/Container';
 import clsx from 'clsx'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import {navigate} from "hookrouter";
-import makeStyles from "@material-ui/core/styles/makeStyles";
+import {navigate} from 'hookrouter';
+import makeStyles from '@material-ui/core/styles/makeStyles';
+import LanguageSelector from '../components/LanguageSelector';
 
 const drawerWidth = 240;
 
@@ -101,22 +102,22 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-
-export default function Layout({children, menus}) {
-  const classes = useStyles();
+export default function Layout({children, menus, ...props}) {
+  const classes = useStyles(props);
   const [open, setOpen] = React.useState(true);
 
   const goto = (link) => {
-    if (/https?:/.test(link)) {
-      window.open(link)
-    } else {
-      navigate(link)
+      if (/https?:/.test(link)) {
+        window.open(link)
+      } else {
+        navigate(link)
+      }
     }
-  };
+  ;
 
   return (
     <div className={classes.root}>
-      <CssBaseline/>
+      <CssBaseline />
       <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
         <Toolbar className={classes.toolbar}>
           <IconButton
@@ -126,11 +127,15 @@ export default function Layout({children, menus}) {
             onClick={() => setOpen(true)}
             className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
           >
-            <MenuIcon/>
+            <MenuIcon />
           </IconButton>
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
             Kori
           </Typography>
+
+          <div>
+            <LanguageSelector />
+          </div>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -142,46 +147,46 @@ export default function Layout({children, menus}) {
       >
         <div className={classes.toolbarIcon}>
           <IconButton onClick={() => setOpen(false)}>
-            <ChevronLeftIcon/>
+            <ChevronLeftIcon />
           </IconButton>
         </div>
-        <Divider/>
+        <Divider />
         <List>
           <div>
             {
               menus.map(v => (
-                <ListItem button key={v.label} onClick={() => goto(v.link)}>
+                <ListItem button key={v.link} onClick={() => goto(v.link)}>
                   {v.icon && (
                     <ListItemIcon>
                       {v.icon}
                     </ListItemIcon>
                   )}
-                  <ListItemText primary={v.label}/>
+                  <ListItemText primary={v.label} />
                 </ListItem>))
             }
           </div>
         </List>
 
-        <Divider/>
+        <Divider />
 
         <List>
           <div>
             <ListSubheader>by</ListSubheader>
             <Link href="https://github.com/wenerme" target="_blank">
               <ListItem button>
-                <ListItemText primary="wener"/>
+                <ListItemText primary="wener" />
               </ListItem>
             </Link>
             <Link href="https://kotlinlang.org" target="_blank">
               <ListItem button>
-                <ListItemText primary="kotlin"/>
+                <ListItemText primary="kotlin" />
               </ListItem>
             </Link>
           </div>
         </List>
       </Drawer>
       <main className={classes.content}>
-        <div className={classes.appBarSpacer}/>
+        <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
           {children}
         </Container>

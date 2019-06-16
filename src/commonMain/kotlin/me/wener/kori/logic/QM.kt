@@ -1,6 +1,7 @@
 package me.wener.kori.logic
 
 import me.wener.kori.combine.Combinatorics
+import me.wener.kori.math.pow
 import me.wener.kori.util.ifPresent
 import kotlin.js.JsName
 import kotlin.jvm.JvmStatic
@@ -15,6 +16,10 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
   val essentials = mutableListOf<Term>()
   val primes = mutableListOf<Term>()
   var compares = 0
+  /**
+   * maximum compares allowed - prevent oem
+   */
+  var comareThreshhold = 2.pow(16)// 65536
 
   var debug = false
   val iterations = mutableListOf<List<Term>>()
@@ -31,6 +36,7 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
     this.ignored = ignored.toSet()
     this.matches = matches.toSet()
     this.vars = vars
+    this.compares = 0
     return this
   }
 
@@ -166,7 +172,6 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
     val truths = mutableListOf<Long>()
     truths.addAll(matches)
     truths.addAll(ignored)
-    truths.sort()
 
     // init terms - build truth table
     for (match in truths) {
@@ -182,7 +187,12 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
     var ga: List<Term>
     var gb: List<Term>
 
+    // dedup tracking
+    val dedup = mutableMapOf<String, Term>()
     do {
+      // the groups order depends on the candidates
+      candidates.sortBy { it.ones }
+
       // debug the processing
       if (debug) {
         iterations.add(candidates.toList())
@@ -214,16 +224,26 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
 
         for (a in ga) {
           for (b in gb) {
-            compares++
-            combine(a, b).ifPresent { candidates.add(it) }
+            require(compares++ < comareThreshhold) { "too many compares $comareThreshhold" }
+            combine(a, b).ifPresent {
+              val s = it.bin.toBinaryRepresentationString()
+              val last = dedup[s]
+              if (last != null) {
+                last.matches.addAll(it.matches)
+              } else {
+                candidates.add(it)
+                dedup.put(s, it)
+              }
+              Unit
+            }
           }
         }
       } while (true)
     } while (candidates.isNotEmpty())
 
     // cleanup
-    val dedup = mutableSetOf<String>()
-    primes.removeAll { it.combined || !dedup.add(it.bin.toBinaryRepresentationString()) }
+    dedup.clear()
+    primes.removeAll { it.combined || dedup.put(it.bin.toBinaryRepresentationString(), it) != null }
 
     val targets = mutableListOf<Long>()
     matches.forEach { targets.add(it) }
@@ -268,7 +288,7 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
     /**
      * mintermlist
      */
-    var matches: MutableList<Long> = mutableListOf()
+    var matches: MutableSet<Long> = linkedSetOf()
   ) {
     constructor(bins: IntArray) : this(bins, bins.ones())
     constructor(bins: IntArray, a: Term, b: Term) : this(bins, bins.ones(), a = a, b = b) {
@@ -279,7 +299,7 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
     }
 
     override fun toString(): String =
-      "Term($ones/$matches/${bin.toBinaryRepresentationString()}/${if (combined) "✓" else "x"})"
+      "Term($ones/${bin.toVariableString()}/${bin.toBinaryRepresentationString()}}/$matches/${if (combined) "✓" else "x"})"
   }
 
   override fun toString(): String {

@@ -1,6 +1,6 @@
-import {useLocalStore, useObserver} from "mobx-react-lite";
-import * as React from "react";
-import {useEffect} from "react";
+import {useLocalStore, useObserver} from 'mobx-react-lite';
+import * as React from 'react';
+import {useEffect} from 'react';
 import {
   Button,
   Chip,
@@ -17,14 +17,16 @@ import {
   TableCell,
   TableHead,
   TableRow
-} from "@material-ui/core";
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
+} from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
 import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt';
 import CheckIcon from '@material-ui/icons/Check';
 import DoneAllIcon from '@material-ui/icons/DoneAll';
 import ClearIcon from '@material-ui/icons/Clear';
-import TruthTable from "../components/TruthTable";
+import TruthTable from '../components/TruthTable';
+import {useQueryParams} from 'hookrouter';
+import {Trans, useTranslation} from 'react-i18next';
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -45,9 +47,10 @@ const useStyles = makeStyles(theme => ({
       margin: theme.spacing(1)
     },
     valuesContainer: {
-      display: 'inline-grid',
-      gridTemplateColumns: 'repeat(10,1fr)',
-      gridColumnGap: 8
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill,minmax(64px, 1fr));',
+      gridColumnGap: 8,
+      gridRowGap: 6,
     }
   }))
 ;
@@ -62,26 +65,27 @@ const toVariableString = QM.Companion.toVariableString.bind(QM.Companion);
 
 const qm = new QM();
 qm.debug = true;
-window["qm"] = qm;
+window['qm'] = qm;
 
 
 function MintermTable({
                         table,
                         showCombined = false,
-                        onRowMouseEnter = (v) => (null),
-                        onRowMouseLeave = (v) => (null)
+                        onRowMouseEnter = v => (null),
+                        onRowMouseLeave = v => (null)
                       }) {
+  let {t} = useTranslation();
   return useObserver(() =>
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell><abbr title="Number of 1s">1s</abbr></TableCell>
+          <TableCell><abbr title={t('Number of 1s')}>1s</abbr></TableCell>
           <TableCell>Minterm</TableCell>
-          <TableCell><abbr title="Binary Representation">Binary</abbr></TableCell>
+          <TableCell><abbr title={t('Binary Representation')}>Binary</abbr></TableCell>
           {
             showCombined &&
             <TableCell>
-              <abbr title="Term has been combined or can not combine anymore">
+              <abbr title={t('Term has been combined or can not combine anymore')}>
                 ✓
               </abbr>
             </TableCell>
@@ -111,7 +115,7 @@ function MintermTable({
                   </TableCell>
                   {
                     showCombined &&
-                    <TableCell>{v.combined && <CheckIcon/> || <DoneAllIcon color="primary"/>}</TableCell>
+                    <TableCell>{v.combined && <CheckIcon /> || <DoneAllIcon color="primary" />}</TableCell>
                   }
                 </TableRow>
               ))
@@ -122,16 +126,49 @@ function MintermTable({
   );
 }
 
+function tryParseIntArray(s) {
+  if (!s) {
+    return [];
+  }
+  let a = s;
+  if (typeof a === 'string') {
+    a = a.split(',')
+  }
+  return a.map(v => 1 * v).sort();
+}
+
+function ifPresent(v, f) {
+  if (v) {
+    return f(v)
+  }
+}
+
 export default function QMPane(props) {
-  const classes = useStyles();
-  const store = useLocalStore(() => ({
+  const classes = useStyles(props);
+  const [queryParams, setQueryParams] = useQueryParams();
+
+  const initial = {
     matches: [4, 8, 10, 11, 12, 15],
     ignores: [9, 14],
+    variableCount: 4,
+  };
+
+  ifPresent(props.matches || queryParams.matches, v => {
+    initial.matches = tryParseIntArray(v);
+    // if we got matches then ignore the initial ignores
+    initial.ignores = [];
+  });
+  ifPresent(props.ignores || queryParams.ignores, v => initial.ignores = tryParseIntArray(v));
+  ifPresent(props.variableCount || queryParams.variableCount, v => initial.variableCount = 1 * v);
+
+  const store = useLocalStore((source: typeof initial) => ({
+    matches: source.matches,
+    ignores: source.ignores,
     matchValue: 13,
     ignoreValue: 3,
 
-    variableCountInput: 4,
-    variableCount: 4,
+    variableCount: source.variableCount,
+    variableCountInput: source.variableCount,
     variableCountError: '',
 
     minimizedExpression: '',
@@ -174,7 +211,7 @@ export default function QMPane(props) {
       store.selected = []
     },
     doResolve() {
-      store.variableCount = parseInt(store.variableCountInput)
+      store.variableCount = parseInt(store.variableCountInput);
       qm.reset(store.variableCount, store.matches, store.ignores);
       try {
         qm.resolve()
@@ -183,7 +220,7 @@ export default function QMPane(props) {
         return
       }
       store.compares = qm.compares;
-      store.minimizedExpression = qm.essentials.toArray().map(v => toVariableString(v.bin)).join('+')
+      store.minimizedExpression = qm.essentials.toArray().map(v => toVariableString(v.bin)).join('+');
 
       // match,bin,1
       const terms = qm.terms.toArray();
@@ -226,17 +263,17 @@ export default function QMPane(props) {
 
       store.iterations = qm.iterations.toArray().map(v => grouping(v.toArray(), true));
     }
-  }));
+  }), initial);
 
   useEffect(() => {
     let n = parseInt(store.variableCount);
     store.variableCountError = null;
     if (n <= 0) {
-      store.variableCountError = "count must > 0"
+      store.variableCountError = 'count must > 0'
     } else if (n > 12) {
-      store.variableCountError = "count must <= 12"
+      store.variableCountError = 'count must <= 12'
     } else if (!(n > 1)) {
-      store.variableCountError = "invalid"
+      store.variableCountError = 'invalid'
     }
 
     if (!store.variableCountError) {
@@ -255,21 +292,21 @@ export default function QMPane(props) {
       <Grid item xs={12} md={8} lg={9}>
         <Paper className={classes.paper}>
           <Typography variant="h6" component="h4">
-            Inputs
+            <Trans>Quine–McCluskey algorithm</Trans>
           </Typography>
           <div>
             <div className={classes.inputsContainer}>
               <TextField
                 error={!!store.variableCountError}
                 helperText={store.variableCountError}
-                label="Variables"
+                label={<Trans>Variables</Trans>}
                 value={store.variableCountInput}
                 onChange={e => store.variableCountInput = e.target.value}
                 type="number"
                 margin="normal"
               />
               <TextField
-                label="Match"
+                label={<Trans>Match</Trans>}
                 value={store.matchValue}
                 onChange={e => store.matchValue = parseInt(e.target.value)}
                 onKeyPress={e => {
@@ -282,7 +319,7 @@ export default function QMPane(props) {
                 margin="normal"
               />
               <TextField
-                label="Ignore"
+                label={<Trans>Ignore</Trans>}
                 value={store.ignoreValue}
                 onChange={e => store.ignoreValue = parseInt(e.target.value)}
                 onKeyPress={e => {
@@ -298,16 +335,21 @@ export default function QMPane(props) {
                 color="primary"
                 variant="contained"
                 onClick={store.doResolve}
-              >Resolve</Button>
+              >
+                <Trans>Resolve</Trans>
+              </Button>
             </div>
-            <Divider style={{margin: "8px 0"}}/>
+            <Divider style={{margin: '8px 0'}} />
             <div>
               <Typography component="h6">
-                Matches <IconButton
-                size="small"
-                aria-label="Clear"
-                onClick={()=>store.matches = []}
-              ><ClearIcon/></IconButton>
+                <Trans>Matches</Trans>
+                <IconButton
+                  size="small"
+                  aria-label="Clear"
+                  onClick={() => store.matches = []}
+                >
+                  <ClearIcon />
+                </IconButton>
               </Typography>
               <div className={classes.valuesContainer}>
                 {
@@ -328,11 +370,11 @@ export default function QMPane(props) {
 
             <div>
               <Typography component="h6">
-                Ignores <IconButton
+                <Trans>Ignores</Trans> <IconButton
                 size="small"
                 aria-label="Clear"
-                onClick={()=>store.ignores = []}
-              ><ClearIcon/></IconButton>
+                onClick={() => store.ignores = []}
+              ><ClearIcon /></IconButton>
               </Typography>
               <div className={classes.valuesContainer}>
                 {
@@ -356,17 +398,17 @@ export default function QMPane(props) {
       <Grid item xs={12} md={4} lg={3}>
         <Paper className={classes.paper}>
           <Typography variant="h5" component="h4">
-            Result
+            <Trans>Results</Trans>
           </Typography>
           <List component="nav">
             <ListItem>
-              <ListItemText primary="Estimate compares" secondary={store.estimateCompares}/>
+              <ListItemText primary={<Trans>Estimate compares</Trans>} secondary={store.estimateCompares} />
             </ListItem>
             <ListItem>
-              <ListItemText primary="Expression" secondary={store.minimizedExpression}/>
+              <ListItemText primary={<Trans>Compares</Trans>} secondary={store.compares} />
             </ListItem>
             <ListItem>
-              <ListItemText primary="Compares" secondary={store.compares}/>
+              <ListItemText primary={<Trans>Expression</Trans>} secondary={store.minimizedExpression} />
             </ListItem>
           </List>
         </Paper>
@@ -374,28 +416,27 @@ export default function QMPane(props) {
       <Grid item xs={12} md={6} lg={6}>
         <Paper className={classes.paper}>
           <Typography variant="h5" component="h4">
-            Truth Table
+            <Trans>Truth Table</Trans>
           </Typography>
           <div>
-
-            <TruthTable table={store.truthTable}/>
+            <TruthTable table={store.truthTable} />
           </div>
         </Paper>
       </Grid>
       <Grid item xs={12} md={6} lg={6}>
         <Paper className={classes.paper}>
           <Typography variant="h5" component="h4">
-            Mintermlist
+            <Trans>Mintermlist</Trans>
           </Typography>
           <div>
-            <MintermTable table={store.mintermlist}/>
+            <MintermTable table={store.mintermlist} />
           </div>
         </Paper>
       </Grid>
       <Grid item xs={12} md={12} lg={12}>
         <Paper className={classes.paper}>
           <Typography variant="h5" component="h4">
-            Prime Implicants Chart
+            <Trans>Prime Implicants Chart</Trans>
           </Typography>
           <div>
             <Table size="small">
@@ -405,7 +446,7 @@ export default function QMPane(props) {
                   {
                     store.matches.map(v => (<TableCell key={v}>{v}</TableCell>))
                   }
-                  <TableCell> <ArrowRightAltIcon/> </TableCell>
+                  <TableCell> <ArrowRightAltIcon /> </TableCell>
 
                   {
                     Array
@@ -428,11 +469,11 @@ export default function QMPane(props) {
                             <TableCell key={`m-${i}`}>
                               {
                                 row.matches.includes(v) &&
-                                <CheckIcon color="primary"/>
+                                <CheckIcon color="primary" />
                               }
                             </TableCell>))
                         }
-                        <TableCell> <ArrowRightAltIcon/> </TableCell>
+                        <TableCell> <ArrowRightAltIcon /> </TableCell>
                         {
                           row.bin.map((v, i) => (
                             <TableCell key={`bin-${i}`}>{toBinaryRepresentation(v)}</TableCell>
@@ -449,10 +490,10 @@ export default function QMPane(props) {
       <Grid item md={12}>
         <Paper className={classes.paper}>
           <Typography variant="h5" component="h4">
-            Iterations
+            <Trans>Iterations</Trans>
           </Typography>
           <div style={{
-            display: "grid",
+            display: 'grid',
             gridTemplateColumns: `repeat(${store.iterations.length},1fr)`,
             gridColumnGap: 8
           }}>

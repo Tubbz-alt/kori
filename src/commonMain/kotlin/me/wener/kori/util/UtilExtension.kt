@@ -8,6 +8,9 @@ inline fun <T : Any, R> T?.ifPresent(callback: (T) -> R): R? {
   return this?.let(callback)
 }
 
+inline fun <T : Any, R> T?.isPresent(): Boolean = this != null
+inline fun <T : Any, R> T?.isAbsent(): Boolean = this == null
+
 fun <T : Any> MutableList<T>.pollFirst(): T = this.removeAt(0)
 fun <T : Any> MutableList<T>.pollLast(): T = this.removeAt(this.lastIndex)
 
