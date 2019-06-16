@@ -3,7 +3,7 @@ import * as React from 'react';
 import {useLocalStore, useObserver} from 'mobx-react-lite';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import {Button, ClickAwayListener, Grow, MenuItem, MenuList, Paper, Popper} from '@material-ui/core';
-import {ArrowDropDown} from '@material-ui/icons';
+import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 
 export default function LanguageSelector() {
   const {t, i18n} = useTranslation();

@@ -12,7 +12,6 @@
     "kotlin": "^1.3.31",
     "mobx": "^5.10.1",
     "mobx-react-lite": "^1.4.0",
-    "npm-check-updates": "^3.1.10",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-i18next": "^10.11.1"
@@ -20,11 +19,12 @@
   "devDependencies": {
     "@types/hookrouter": "^2.2.1",
     "@types/node": "^12.0.8",
+    "parcel-plugin-bundle-visualiser": "^1.2.0",
     "typescript": "^3.5.2"
   },
   "scripts": {
     "copy": "cp ../build/classes/kotlin/js/main/kori.js src/libs && cp ../build/classes/kotlin/js/main/kori.js.map src/libs",
-    "dist": "npm run copy && parcel build src/index.tsx -d ../docs/dist",
+    "dist": "npm run copy && NODE_ENV=production parcel build src/index.tsx -d ../docs/dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "wener",
