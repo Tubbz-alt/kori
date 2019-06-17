@@ -42,7 +42,7 @@ object LogicExpressions {
   @JsName("resolve")
   @JvmStatic
   fun resolve(e: Expression): Pair<List<String>, List<IntArray>> {
-    val variables = variables(e).sorted()
+    val variables = variables(e)
     val results = mutableListOf<IntArray>()
     val n = variables.size
 
@@ -128,16 +128,16 @@ object LogicExpressions {
   ) {
     when (e) {
       is Condition -> {
-        out("${"  ".repeat(indent)}Condition[operator=${e.operator}]")
+        out("${"  ".repeat(indent)}Condition[operator=${e.operator}] -> ${e.toExpressionString()}")
         printSyntaxTree(e.left, out, indent + 1)
         printSyntaxTree(e.right, out, indent + 1)
       }
       is Negative -> {
-        out("${"  ".repeat(indent)}Negative")
+        out("${"  ".repeat(indent)}Negative -> ${e.toExpressionString()}")
         printSyntaxTree(e.expression, out, indent + 1)
       }
       is Parentheses -> {
-        out("${"  ".repeat(indent)}Parentheses")
+        out("${"  ".repeat(indent)}Parentheses -> ${e.toExpressionString()}")
         printSyntaxTree(e.expression, out, indent + 1)
       }
       is Variable -> out("${"  ".repeat(indent)}Variable[name=${e.name}]")
@@ -149,14 +149,19 @@ object LogicExpressions {
 fun Expression.toAlgebraString(): String = LogicExpressions.toAlgebraString(this)
 
 interface Expression {
-  fun not(): Expression = Negative(this)
+
   fun parentheses(): Expression = Parentheses(this)
 
+  fun not(): Expression = Negative(this)
+
   @JsName("and")
-  fun and(right: Expression): Expression = Condition(left = this, right = right, operator = ConditionOperator.AND)
+  fun and(right: Expression): Expression = join(right, ConditionOperator.AND)
 
   @JsName("or")
-  fun or(right: Expression): Expression = Condition(left = this, right = right, operator = ConditionOperator.OR)
+  fun or(right: Expression): Expression = join(right, ConditionOperator.OR)
+
+  @JsName("join")
+  fun join(right: Expression, op: ConditionOperator): Expression = Condition(op, this, right)
 
   fun toExpressionString(): String = LogicExpressions.toExpressionString(this)
 }
@@ -402,7 +407,7 @@ private class LogicalExpressionParser(val exp: String) {
   }
 
   protected fun isVariablePending(c: Char): Boolean {
-    return isVariableLeading(c) || (c in '9'..'0')
+    return isVariableLeading(c) || (c in '0'..'9')
   }
 
   private fun read(): Char {

@@ -2,6 +2,7 @@
   'use strict';
   var $$importsForInline$$ = _.$$importsForInline$$ || (_.$$importsForInline$$ = {});
   var Kind_OBJECT = Kotlin.Kind.OBJECT;
+  var joinToString = Kotlin.kotlin.collections.joinToString_fmv235$;
   var L1 = Kotlin.Long.ONE;
   var L0 = Kotlin.Long.ZERO;
   var L2 = Kotlin.Long.fromInt(2);
@@ -14,6 +15,7 @@
   var toSet = Kotlin.kotlin.collections.toSet_se6h4x$;
   var StringBuilder_init = Kotlin.kotlin.text.StringBuilder_init;
   var toChar = Kotlin.toChar;
+  var unboxChar = Kotlin.unboxChar;
   var sort = Kotlin.kotlin.collections.sort_4wi501$;
   var first_0 = Kotlin.kotlin.collections.first_2p1efm$;
   var listOf = Kotlin.kotlin.collections.listOf_mh5how$;
@@ -21,18 +23,18 @@
   var toList = Kotlin.kotlin.collections.toList_7wnvza$;
   var removeAll = Kotlin.kotlin.collections.removeAll_qafx1e$;
   var ensureNotNull = Kotlin.ensureNotNull;
-  var joinToString = Kotlin.kotlin.collections.joinToString_fmv235$;
   var emptySet = Kotlin.kotlin.collections.emptySet_287e2$;
   var ArrayList_init = Kotlin.kotlin.collections.ArrayList_init_287e2$;
   var IllegalArgumentException_init = Kotlin.kotlin.IllegalArgumentException_init_pdl1vj$;
   var ArrayList_init_0 = Kotlin.kotlin.collections.ArrayList_init_ww73n8$;
+  var iterator = Kotlin.kotlin.text.iterator_gw00vp$;
+  var toBoxedChar = Kotlin.toBoxedChar;
   var emptyList = Kotlin.kotlin.collections.emptyList_287e2$;
   var LinkedHashMap_init = Kotlin.kotlin.collections.LinkedHashMap_init_q3lmfv$;
   var sortWith = Kotlin.kotlin.collections.sortWith_nqfjgj$;
   var wrapFunction = Kotlin.wrapFunction;
   var Comparator = Kotlin.kotlin.Comparator;
   var LinkedHashSet_init = Kotlin.kotlin.collections.LinkedHashSet_init_287e2$;
-  var sorted = Kotlin.kotlin.collections.sorted_exjks8$;
   var Unit = Kotlin.kotlin.Unit;
   var COROUTINE_SUSPENDED = Kotlin.kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED;
   var CoroutineImpl = Kotlin.kotlin.coroutines.CoroutineImpl;
@@ -43,14 +45,13 @@
   var hashCode = Kotlin.hashCode;
   var Enum = Kotlin.kotlin.Enum;
   var throwISE = Kotlin.throwISE;
-  var toBoxedChar = Kotlin.toBoxedChar;
-  var unboxChar = Kotlin.unboxChar;
   var last_0 = Kotlin.kotlin.collections.last_2p1efm$;
   var get_lastIndex = Kotlin.kotlin.collections.get_lastIndex_55thoc$;
   var CharRange = Kotlin.kotlin.ranges.CharRange;
   var mutableListOf = Kotlin.kotlin.collections.mutableListOf_i5x0yv$;
   var RuntimeException_init = Kotlin.kotlin.RuntimeException_init_pdl1vj$;
   var RuntimeException = Kotlin.kotlin.RuntimeException;
+  var getCallableRef = Kotlin.getCallableRef;
   var throwCCE = Kotlin.throwCCE;
   var L6 = Kotlin.Long.fromInt(6);
   var L3 = Kotlin.Long.fromInt(3);
@@ -93,8 +94,20 @@
     }
     return count;
   }
-  function toVariableString($receiver) {
-    return QM$Companion_getInstance().toVariableString($receiver);
+  function toVariableString($receiver, names) {
+    if (names === void 0)
+      names = [];
+    return QM$Companion_getInstance().toVariableString($receiver, names);
+  }
+  function toVariableString$lambda(closure$names) {
+    return function (it) {
+      return toVariableString(it.bin, closure$names);
+    };
+  }
+  function toVariableString_0($receiver, names) {
+    if (names === void 0)
+      names = [];
+    return joinToString($receiver, ' + ', void 0, void 0, void 0, void 0, toVariableString$lambda(names));
   }
   function toBinaryRepresentationString($receiver) {
     return QM$Companion_getInstance().toBinaryRepresentationString($receiver);
@@ -322,18 +335,30 @@
     }
     return tmp$;
   };
-  QM$Companion.prototype.toVariableString = function (v) {
+  QM$Companion.prototype.toVariableString = function (v, names) {
+    if (names === void 0)
+      names = [];
     var sb = StringBuilder_init();
     for (var idx = 0; idx !== v.length; ++idx) {
       var i = v[idx];
-      switch (i) {
-        case 0:
-          sb.append_s8itvh$(AboveLine);
+      if (i === 0 || i === 1) {
+        if (names.length === 0) {
           sb.append_s8itvh$(toChar(65 + idx));
-          break;
-        case 1:
-          sb.append_s8itvh$(toChar(65 + idx));
-          break;
+          if (i === 0) {
+            sb.append_s8itvh$(AboveLine);
+          }
+        }
+         else {
+          var tmp$;
+          tmp$ = iterator(names[idx]);
+          while (tmp$.hasNext()) {
+            var element = unboxChar(tmp$.next());
+            sb.append_s8itvh$(unboxChar(toBoxedChar(element)));
+            if (i === 0) {
+              sb.append_s8itvh$(AboveLine);
+            }
+          }
+        }
       }
     }
     return sb.toString();
@@ -532,6 +557,11 @@
     }
     return this;
   };
+  QM.prototype.toVariableString = function (names) {
+    if (names === void 0)
+      names = [];
+    return toVariableString_0(this.essentials, names);
+  };
   function QM$Term(bin, ones, a, b, combined, esum, matches) {
     if (a === void 0)
       a = null;
@@ -574,11 +604,8 @@
     $this.matches.addAll_brywnq$(b.matches);
     return $this;
   }
-  function QM$toString$lambda(it) {
-    return toVariableString(it.bin);
-  }
   QM.prototype.toString = function () {
-    return 'QM(e=' + joinToString(this.essentials, ' + ', void 0, void 0, void 0, void 0, QM$toString$lambda) + ', compares=' + this.compares + ')';
+    return 'QM(e=' + this.toVariableString() + ', compares=' + this.compares + ')';
   };
   QM.$metadata$ = {
     kind: Kind_CLASS,
@@ -624,7 +651,7 @@
   }
   LogicExpressions.prototype.resolve = function (e) {
     var tmp$;
-    var variables = sorted(this.variables(e));
+    var variables = this.variables(e);
     var results = ArrayList_init();
     var n = variables.size;
     tmp$ = this.exhaustive_za3lpa$(n).iterator();
@@ -775,16 +802,16 @@
     if (indent === void 0)
       indent = 0;
     if (Kotlin.isType(e, Condition)) {
-      out(repeat('  ', indent) + 'Condition[operator=' + e.operator + ']');
+      out(repeat('  ', indent) + 'Condition[operator=' + e.operator + '] - ' + e.toExpressionString());
       this.printSyntaxTree_ybz7d4$(e.left, out, indent + 1 | 0);
       this.printSyntaxTree_ybz7d4$(e.right, out, indent + 1 | 0);
     }
      else if (Kotlin.isType(e, Negative)) {
-      out(repeat('  ', indent) + 'Negative');
+      out(repeat('  ', indent) + 'Negative - ' + e.toExpressionString());
       this.printSyntaxTree_ybz7d4$(e.expression, out, indent + 1 | 0);
     }
      else if (Kotlin.isType(e, Parentheses)) {
-      out(repeat('  ', indent) + 'Parentheses');
+      out(repeat('  ', indent) + 'Parentheses - ' + e.toExpressionString());
       this.printSyntaxTree_ybz7d4$(e.expression, out, indent + 1 | 0);
     }
      else if (Kotlin.isType(e, Variable))
@@ -809,17 +836,20 @@
   }
   function Expression() {
   }
-  Expression.prototype.not = function () {
-    return new Negative(this);
-  };
   Expression.prototype.parentheses = function () {
     return new Parentheses(this);
   };
+  Expression.prototype.not = function () {
+    return new Negative(this);
+  };
   Expression.prototype.and = function (right) {
-    return new Condition(ConditionOperator$AND_getInstance(), this, right);
+    return this.join(right, ConditionOperator$AND_getInstance());
   };
   Expression.prototype.or = function (right) {
-    return new Condition(ConditionOperator$OR_getInstance(), this, right);
+    return this.join(right, ConditionOperator$OR_getInstance());
+  };
+  Expression.prototype.join = function (right, op) {
+    return new Condition(op, this, right);
   };
   Expression.prototype.toExpressionString = function () {
     return LogicExpressions_getInstance().toExpressionString(this);
@@ -1261,7 +1291,7 @@
     return (new CharRange(97, 122)).contains_mef7kx$(c) || (new CharRange(65, 90)).contains_mef7kx$(c);
   };
   LogicalExpressionParser.prototype.isVariablePending_0 = function (c) {
-    return this.isVariableLeading_0(c) || (new CharRange(57, 48)).contains_mef7kx$(c);
+    return this.isVariableLeading_0(c) || (new CharRange(48, 57)).contains_mef7kx$(c);
   };
   LogicalExpressionParser.prototype.read_0 = function () {
     while (unboxChar(this.next_1()) === 32)
@@ -1307,6 +1337,13 @@
     simpleName: 'LogicalExpressionSyntaxException',
     interfaces: [RuntimeException]
   };
+  function Comparator$ObjectLiteral_0(closure$comparison) {
+    this.closure$comparison = closure$comparison;
+  }
+  Comparator$ObjectLiteral_0.prototype.compare = function (a, b) {
+    return this.closure$comparison(a, b);
+  };
+  Comparator$ObjectLiteral_0.$metadata$ = {kind: Kind_CLASS, interfaces: [Comparator]};
   function then$lambda(closure$pre, closure$next) {
     return function (e, parent) {
       var tmp$ = closure$pre(e, parent);
@@ -1325,14 +1362,14 @@
   function Rewriters() {
     Rewriters_instance = this;
   }
-  Rewriters.prototype.rewrite = function (e, rewriter, parent) {
+  Rewriters.prototype.rewrite = function (expression, rewriter, parent) {
     if (parent === void 0)
       parent = null;
-    var tmp$ = rewriter(e, parent);
-    var a = tmp$.component1()
+    var tmp$ = rewriter(expression, parent);
+    var e = tmp$.component1()
     , changed = tmp$.component2();
     if (changed) {
-      return this.rewrite(a, rewriter);
+      return this.rewrite(e, rewriter);
     }
     if (Kotlin.isType(e, Condition)) {
       e.left = this.rewrite(e.left, rewriter, e);
@@ -1342,6 +1379,10 @@
       e.expression = this.rewrite(e.expression, rewriter, e);
     else if (Kotlin.isType(e, Parentheses))
       e.expression = this.rewrite(e.expression, rewriter, e);
+    var after = rewriter(e, parent);
+    if (after.second) {
+      return this.rewrite(e, rewriter);
+    }
     return e;
   };
   function Rewriters$chain$lambda(closure$rewriters) {
@@ -1364,7 +1405,25 @@
   Rewriters.prototype.chain = function (rewriters) {
     return Rewriters$chain$lambda(rewriters);
   };
+  Rewriters.prototype.groups = function (e, parent) {
+    if (parent === void 0)
+      parent = null;
+    if (Kotlin.isType(e, Condition)) {
+      var ops = this.ops_9gz9l8$(e, e.operator);
+      sortWith(ops, new Comparator$ObjectLiteral_0(getCallableRef('sort', function ($receiver, a, b) {
+        return $receiver.sort_z2uhak$(a, b);
+      }.bind(null, Rewriters_getInstance()))));
+      var set = LinkedHashSet_init();
+      set.addAll_brywnq$(ops);
+      if (set.size !== ops.size) {
+        return new Pair(this.join_k6xk68$(e.operator, set), true);
+      }
+    }
+    return new Pair(e, false);
+  };
   Rewriters.prototype.simplify = function (e, parent) {
+    if (parent === void 0)
+      parent = null;
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
     if (Kotlin.isType(e, Condition)) {
       if (e.operator === ConditionOperator$AND_getInstance() || e.operator === ConditionOperator$OR_getInstance()) {
@@ -1398,16 +1457,12 @@
           }
         }
       }
-      if (hashCode(e.left) < hashCode(e.right)) {
-        var tmp = e.right;
-        e.right = e.left;
-        e.left = tmp;
-        return new Pair(e, true);
-      }
     }
     return new Pair(e, false);
   };
   Rewriters.prototype.unnecessaryParentheses = function (e, parent) {
+    if (parent === void 0)
+      parent = null;
     var changed = false;
     if (Kotlin.isType(e, Parentheses)) {
       var nest = e.expression;
@@ -1432,6 +1487,8 @@
     return new Pair(e, changed);
   };
   Rewriters.prototype.doubleNegation = function (e, parent) {
+    if (parent === void 0)
+      parent = null;
     if (Kotlin.isType(e, Negative)) {
       var nest = e.expression;
       while (Kotlin.isType(nest, Parentheses)) {
@@ -1444,6 +1501,8 @@
     return new Pair(e, false);
   };
   Rewriters.prototype.xor2sop = function (e, parent) {
+    if (parent === void 0)
+      parent = null;
     if (Kotlin.isType(e, Condition) && e.operator === ConditionOperator$XOR_getInstance()) {
       var a = e.left;
       var b = e.right;
@@ -1455,6 +1514,8 @@
     return new Pair(e, false);
   };
   Rewriters.prototype.sop = function (e, parent) {
+    if (parent === void 0)
+      parent = null;
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
     if (Kotlin.isType(e, Condition) && e.operator === ConditionOperator$AND_getInstance()) {
       var a = e.left;
@@ -1487,6 +1548,41 @@
       }
     }
     return new Pair(e, false);
+  };
+  Rewriters.prototype.ops_9gz9l8$ = function (e, op, g) {
+    if (g === void 0) {
+      g = ArrayList_init();
+    }
+    if (Kotlin.isType(e, Condition) && e.operator === op) {
+      this.ops_9gz9l8$(e.left, op, g);
+      this.ops_9gz9l8$(e.right, op, g);
+    }
+     else {
+      g.add_11rb$(e);
+    }
+    return g;
+  };
+  Rewriters.prototype.sort_z2uhak$ = function (a, b) {
+    if (Kotlin.isType(a, Variable) && Kotlin.isType(b, Variable))
+      return Kotlin.compareTo(a.name, b.name);
+    else if (Kotlin.isType(a, Variable))
+      return -1;
+    else if (Kotlin.isType(b, Variable))
+      return 1;
+    else
+      return Kotlin.primitiveCompareTo(hashCode(a), hashCode(b));
+  };
+  Rewriters.prototype.join_k6xk68$ = function (op, all) {
+    var itor = all.iterator();
+    if (all.size > 1) {
+      var e = {v: itor.next().join(itor.next(), op)};
+      while (itor.hasNext()) {
+        var element = itor.next();
+        e.v = e.v.join(element, op);
+      }
+      return e.v;
+    }
+    return itor.next();
   };
   Rewriters.$metadata$ = {
     kind: Kind_OBJECT,
@@ -1680,7 +1776,8 @@
   });
   var package$logic = package$kori.logic || (package$kori.logic = {});
   package$logic.ones_tmsbgo$ = ones;
-  package$logic.toVariableString_tmsbgo$ = toVariableString;
+  package$logic.toVariableString_xxtpfs$ = toVariableString;
+  package$logic.toVariableString_2hfm9s$ = toVariableString_0;
   package$logic.toBinaryRepresentationString_tmsbgo$ = toBinaryRepresentationString;
   package$logic.toBinaryIntArray_if0zpk$ = toBinaryIntArray;
   package$logic.toBinaryIntArray_dqglrj$ = toBinaryIntArray_0;
@@ -1774,25 +1871,29 @@
   Object.defineProperty(package$sample, 'Platform', {
     get: Platform_getInstance
   });
-  Parentheses.prototype.not = Expression.prototype.not;
   Parentheses.prototype.parentheses = Expression.prototype.parentheses;
+  Parentheses.prototype.not = Expression.prototype.not;
   Parentheses.prototype.and = Expression.prototype.and;
   Parentheses.prototype.or = Expression.prototype.or;
+  Parentheses.prototype.join = Expression.prototype.join;
   Parentheses.prototype.toExpressionString = Expression.prototype.toExpressionString;
-  Condition.prototype.not = Expression.prototype.not;
   Condition.prototype.parentheses = Expression.prototype.parentheses;
+  Condition.prototype.not = Expression.prototype.not;
   Condition.prototype.and = Expression.prototype.and;
   Condition.prototype.or = Expression.prototype.or;
+  Condition.prototype.join = Expression.prototype.join;
   Condition.prototype.toExpressionString = Expression.prototype.toExpressionString;
-  Negative.prototype.not = Expression.prototype.not;
   Negative.prototype.parentheses = Expression.prototype.parentheses;
+  Negative.prototype.not = Expression.prototype.not;
   Negative.prototype.and = Expression.prototype.and;
   Negative.prototype.or = Expression.prototype.or;
+  Negative.prototype.join = Expression.prototype.join;
   Negative.prototype.toExpressionString = Expression.prototype.toExpressionString;
-  Variable.prototype.not = Expression.prototype.not;
   Variable.prototype.parentheses = Expression.prototype.parentheses;
+  Variable.prototype.not = Expression.prototype.not;
   Variable.prototype.and = Expression.prototype.and;
   Variable.prototype.or = Expression.prototype.or;
+  Variable.prototype.join = Expression.prototype.join;
   Variable.prototype.toExpressionString = Expression.prototype.toExpressionString;
   AboveLine = 773;
   AlgebraAnd = 8743;

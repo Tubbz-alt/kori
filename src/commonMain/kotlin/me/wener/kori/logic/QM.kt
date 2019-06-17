@@ -84,15 +84,29 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
 
     @JsName("toVariableString")
     @JvmStatic
-    fun toVariableString(v: IntArray): String {
+    fun toVariableString(v: IntArray, names: Array<String> = arrayOf()): String {
       val sb = StringBuilder()
       for ((idx, i) in v.withIndex()) {
-        when (i) {
-          Logics.FALSE -> {
-            sb.append(AboveLine)
+        if (i == Logics.FALSE || i == Logics.TRUE) {
+          // https://en.wikipedia.org/wiki/Combining_character
+          // In Unicode, diacritics are always added after the main character
+          // May related to the font
+          // https://stackoverflow.com/questions/56621353
+          // A̅B the above line should on A
+
+          if (names.isEmpty()) {
             sb.append('A' + idx)
+            if (i == Logics.FALSE) {
+              sb.append(AboveLine)
+            }
+          } else {
+            names[idx].forEach {
+              sb.append(it)
+              if (i == Logics.FALSE) {
+                sb.append(AboveLine)
+              }
+            }
           }
-          Logics.TRUE -> sb.append('A' + idx)
         }
       }
       return sb.toString()
@@ -264,6 +278,9 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
     return this
   }
 
+  @JsName("toVariableString")
+  fun toVariableString(names: Array<String> = arrayOf()) = essentials.toVariableString(names)
+
   class Term(
     /**
      * binary notation
@@ -303,6 +320,6 @@ class QM(var vars: Int = 0, var ignored: Set<Long> = setOf(), var matches: Set<L
   }
 
   override fun toString(): String {
-    return "QM(e=${essentials.joinToString(" + ") { it.bin.toVariableString() }}, compares=$compares)"
+    return "QM(e=${toVariableString()}, compares=$compares)"
   }
 }

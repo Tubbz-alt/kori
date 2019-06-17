@@ -24,10 +24,10 @@ fun Rewriter.then(next: Rewriter): Rewriter {
 object Rewriters {
   @JsName("rewrite")
   @JvmStatic
-  fun rewrite(e: Expression, rewriter: Rewriter, parent: Expression? = null): Expression {
-    val (a, changed) = rewriter(e, parent)
+  fun rewrite(expression: Expression, rewriter: Rewriter, parent: Expression? = null): Expression {
+    var (e, changed) = rewriter(expression, parent)
     if (changed) {
-      return rewrite(a, rewriter)
+      return rewrite(e, rewriter)
     }
     when (e) {
       is Condition -> {
@@ -36,6 +36,11 @@ object Rewriters {
       }
       is Negative -> e.expression = rewrite(e.expression, rewriter, e)
       is Parentheses -> e.expression = rewrite(e.expression, rewriter, e)
+    }
+    // post process - slower - but some rewrite only happen after the fore-rewriter
+    val after = rewriter(e, parent)
+    if (after.second) {
+      return rewrite(e, rewriter)
     }
     return e
   }
@@ -55,9 +60,24 @@ object Rewriters {
     }
   }
 
+  @JsName("groups")
+  @JvmStatic
+  fun groups(e: Expression, parent: Expression? = null): Pair<Expression, Boolean> {
+    if (e is Condition) {
+      val ops = ops(e, e.operator)
+      ops.sortWith(Comparator(Rewriters::sort))
+      val set = linkedSetOf<Expression>()
+      set.addAll(ops)
+      if (set.size != ops.size) {
+        return Pair(join(e.operator, set), true)
+      }
+    }
+    return Pair(e, false)
+  }
+
   @JsName("simplify")
   @JvmStatic
-  fun simplify(e: Expression, parent: Expression?): Pair<Expression, Boolean> {
+  fun simplify(e: Expression, parent: Expression? = null): Pair<Expression, Boolean> {
     // a && a -> a
     // a || a -> a
     // a || (a && b) -> a
@@ -88,14 +108,6 @@ object Rewriters {
           }
         }
       }
-
-      // uniform
-      if (e.left.hashCode() < e.right.hashCode()) {
-        val tmp = e.right
-        e.right = e.left
-        e.left = tmp
-        return Pair(e, true)
-      }
     }
 
     return Pair(e, false)
@@ -106,7 +118,7 @@ object Rewriters {
    */
   @JsName("unnecessaryParentheses")
   @JvmStatic
-  fun unnecessaryParentheses(e: Expression, parent: Expression?): Pair<Expression, Boolean> {
+  fun unnecessaryParentheses(e: Expression, parent: Expression? = null): Pair<Expression, Boolean> {
     var changed = false
     if (e is Parentheses) {
       // ((a+b)) -> (a+b)
@@ -155,7 +167,7 @@ object Rewriters {
    */
   @JsName("doubleNegation")
   @JvmStatic
-  fun doubleNegation(e: Expression, parent: Expression?): Pair<Expression, Boolean> {
+  fun doubleNegation(e: Expression, parent: Expression? = null): Pair<Expression, Boolean> {
     if (e is Negative) {
       var nest = e.expression
       // !!a -> a
@@ -177,7 +189,7 @@ object Rewriters {
    */
   @JsName("xor2sop")
   @JvmStatic
-  fun xor2sop(e: Expression, parent: Expression?): Pair<Expression, Boolean> {
+  fun xor2sop(e: Expression, parent: Expression? = null): Pair<Expression, Boolean> {
     if (e is Condition && e.operator == ConditionOperator.XOR) {
       val a = e.left
       val b = e.right
@@ -196,7 +208,7 @@ object Rewriters {
    */
   @JsName("sop")
   @JvmStatic
-  fun sop(e: Expression, parent: Expression?): Pair<Expression, Boolean> {
+  fun sop(e: Expression, parent: Expression? = null): Pair<Expression, Boolean> {
     if (e is Condition && e.operator == ConditionOperator.AND) {
       var a = e.left
       if (a.let { it is Parentheses && it.expression.let { it is Condition && it.operator == ConditionOperator.OR } }) {
@@ -219,5 +231,42 @@ object Rewriters {
       }
     }
     return Pair(e, false)
+  }
+
+
+  /**
+   * Extract same ops as a group
+   */
+  fun ops(
+    e: Expression,
+    op: ConditionOperator,
+    g: MutableList<Expression> = mutableListOf()
+  ): MutableList<Expression> {
+    if (e is Condition && e.operator == op) {
+      ops(e.left, op, g)
+      ops(e.right, op, g)
+    } else {
+      g.add(e)
+    }
+    return g
+  }
+
+  fun sort(a: Expression, b: Expression): Int = when {
+    a is Variable && b is Variable -> a.name.compareTo(b.name)
+    a is Variable -> -1
+    b is Variable -> 1
+    else -> a.hashCode().compareTo(b.hashCode())
+  }
+
+  fun join(op: ConditionOperator, all: Collection<Expression>): Expression {
+    val itor = all.iterator()
+    if (all.size > 1) {
+      var e = itor.next().join(itor.next(), op)
+      itor.forEach {
+        e = e.join(it, op)
+      }
+      return e
+    }
+    return itor.next()
   }
 }

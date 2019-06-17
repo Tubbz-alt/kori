@@ -63,18 +63,23 @@ export default function LogicPane(props) {
       label: 'Simplify',
       value: 'simplify',
       attach: Rewriters.simplify
+    }, {
+      label: 'Condition Groups',
+      value: 'groups',
+      attach: Rewriters.groups.bind(Rewriters)
     }
   ];
 
   const store = useLocalStore(source => ({
-    rewrites: ['unnecessaryParentheses', 'doubleNegation'],
-    value: props.value || '(a || b) || c && !(!d) && (e && f)',
+    rewrites: ['unnecessaryParentheses', 'doubleNegation', 'groups'],
+    value: props.value || '(A || B) || E && !(!D) && (C && !F) && (D) || A',
     e: null,
     simplified: null,
+    simplifiedExpression: '',
     error: '',
     variables: [],
     addRewrite(v) {
-      store.rewrites.push(v)
+      store.rewrites = [...store.rewrites, v]
     },
     removeRewrite(v) {
       store.rewrites = store.rewrites.filter(i => i != v)
@@ -91,7 +96,7 @@ export default function LogicPane(props) {
       if (!store.e) {
         return
       }
-      const {first: names, second: matches} = LogicExpressions.resolve(store.e)
+      const {first: names, second: matches} = LogicExpressions.resolve(store.e);
       const matcheIntsArray = matches.toArray();
       store.truthTable = matcheIntsArray.map(v => [Logics.fromBinaryIntArrayToLong(v).toInt(), ...v, 1]).sort((a, b) => a[0] - b[0]);
       store.truthTableVariables = names.toArray();
@@ -101,7 +106,7 @@ export default function LogicPane(props) {
     doApplyQmMethod() {
       store.doResolve();
 
-      qm.reset(store.truthTableVariables.length, store.matches, [])
+      qm.reset(store.truthTableVariables.length, store.matches, []);
       try {
         qm.resolve()
       } catch (e) {
@@ -109,8 +114,7 @@ export default function LogicPane(props) {
         return
       }
       store.compares = qm.compares;
-      store.minimizedExpression = qm.essentials.toArray().map(v => toVariableString(v.bin)).join('+')
-
+      store.minimizedExpression = qm.toVariableString(store.variables);
     },
     doJumpQmMethod() {
       store.doResolve();
@@ -121,10 +125,10 @@ export default function LogicPane(props) {
   // parse new expression
   useEffect(() => {
     try {
-      store.e = LogicExpressions.parse(store.value)
+      store.e = LogicExpressions.parse(store.value);
       store.error = null
     } catch (e) {
-      console.log(`Invalid expression '${store.value}' - ${e.message}`)
+      console.log(`Invalid expression '${store.value}' - ${e.message}`);
       store.error = e.message
     }
     if (!store.error) {
@@ -137,21 +141,21 @@ export default function LogicPane(props) {
     if (!store.e) {
       return
     }
+    const e = LogicExpressions.parse(store.e.toExpressionString());
 
     const rw = rewrites
       .filter(v => store.rewrites.includes(v.value))
-      .map(v => v.attach)
-    store.simplified = Rewriters.rewrite(store.e, Rewriters.chain(rw))
-  }, [store.e]);
+      .map(v => v.attach);
+
+    store.simplified = Rewriters.rewrite(e, Rewriters.chain(rw));
+    store.simplifiedExpression = store.simplified.toExpressionString();
+  }, [store.value, store.rewrites]);
 
 
   const classes = useStyles(props);
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   window['testStore'] = store;
-
-
-  const currentRewrites = store.rewrites;
 
   const {t} = useTranslation();
 
@@ -220,7 +224,7 @@ export default function LogicPane(props) {
                   control={
                     <Checkbox
                       value={v.value}
-                      checked={currentRewrites.includes(v.value)}
+                      checked={store.rewrites.includes(v.value)}
                       onChange={e => {
                         if (e.target.checked) {
                           store.addRewrite(v.value)
@@ -234,7 +238,7 @@ export default function LogicPane(props) {
             }
           </FormGroup>
           <Typography component="p">
-            {store.e && store.e.toExpressionString()}
+            {store.simplifiedExpression}
           </Typography>
         </Paper>
       </Grid>
