@@ -24,7 +24,7 @@
   },
   "scripts": {
     "copy": "cp ../build/classes/kotlin/js/main/kori.js src/libs && cp ../build/classes/kotlin/js/main/kori.js.map src/libs",
-    "dist": "npm run copy && NODE_ENV=production parcel build src/index.tsx -d ../docs/dist",
+    "dist": "npm run copy && NODE_ENV=production parcel build src/index.tsx -d ../dist/dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "wener",

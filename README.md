@@ -10,5 +10,6 @@
 cd web && parcel index.html
 
 # build dist
+git worktree add gh-pages dist
 cd web && npm run dist
 ```
